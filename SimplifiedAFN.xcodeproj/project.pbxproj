@@ -1,0 +1,311 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B1B386491BF4DA2800234748 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B386481BF4DA2800234748 /* main.m */; };
+		B1B3864C1BF4DA2900234748 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B3864B1BF4DA2900234748 /* AppDelegate.m */; };
+		B1B3864F1BF4DA2900234748 /* FirstViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B3864E1BF4DA2900234748 /* FirstViewController.m */; };
+		B1B386521BF4DA2900234748 /* SecondViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B386511BF4DA2900234748 /* SecondViewController.m */; };
+		B1B386551BF4DA2900234748 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1B386531BF4DA2900234748 /* Main.storyboard */; };
+		B1B386571BF4DA2900234748 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1B386561BF4DA2900234748 /* Assets.xcassets */; };
+		B1B3865A1BF4DA2900234748 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1B386581BF4DA2900234748 /* LaunchScreen.storyboard */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B1B386441BF4DA2800234748 /* SimplifiedAFN.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimplifiedAFN.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1B386481BF4DA2800234748 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		B1B3864A1BF4DA2900234748 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		B1B3864B1BF4DA2900234748 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		B1B3864D1BF4DA2900234748 /* FirstViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FirstViewController.h; sourceTree = "<group>"; };
+		B1B3864E1BF4DA2900234748 /* FirstViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FirstViewController.m; sourceTree = "<group>"; };
+		B1B386501BF4DA2900234748 /* SecondViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SecondViewController.h; sourceTree = "<group>"; };
+		B1B386511BF4DA2900234748 /* SecondViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SecondViewController.m; sourceTree = "<group>"; };
+		B1B386541BF4DA2900234748 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		B1B386561BF4DA2900234748 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B1B386591BF4DA2900234748 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		B1B3865B1BF4DA2900234748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B1B386411BF4DA2800234748 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B1B3863B1BF4DA2800234748 = {
+			isa = PBXGroup;
+			children = (
+				B1B386461BF4DA2800234748 /* SimplifiedAFN */,
+				B1B386451BF4DA2800234748 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B1B386451BF4DA2800234748 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B1B386441BF4DA2800234748 /* SimplifiedAFN.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B1B386461BF4DA2800234748 /* SimplifiedAFN */ = {
+			isa = PBXGroup;
+			children = (
+				B1B3864A1BF4DA2900234748 /* AppDelegate.h */,
+				B1B3864B1BF4DA2900234748 /* AppDelegate.m */,
+				B1B3864D1BF4DA2900234748 /* FirstViewController.h */,
+				B1B3864E1BF4DA2900234748 /* FirstViewController.m */,
+				B1B386501BF4DA2900234748 /* SecondViewController.h */,
+				B1B386511BF4DA2900234748 /* SecondViewController.m */,
+				B1B386531BF4DA2900234748 /* Main.storyboard */,
+				B1B386561BF4DA2900234748 /* Assets.xcassets */,
+				B1B386581BF4DA2900234748 /* LaunchScreen.storyboard */,
+				B1B3865B1BF4DA2900234748 /* Info.plist */,
+				B1B386471BF4DA2800234748 /* Supporting Files */,
+			);
+			path = SimplifiedAFN;
+			sourceTree = "<group>";
+		};
+		B1B386471BF4DA2800234748 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				B1B386481BF4DA2800234748 /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B1B386431BF4DA2800234748 /* SimplifiedAFN */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B1B3865E1BF4DA2900234748 /* Build configuration list for PBXNativeTarget "SimplifiedAFN" */;
+			buildPhases = (
+				B1B386401BF4DA2800234748 /* Sources */,
+				B1B386411BF4DA2800234748 /* Frameworks */,
+				B1B386421BF4DA2800234748 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SimplifiedAFN;
+			productName = SimplifiedAFN;
+			productReference = B1B386441BF4DA2800234748 /* SimplifiedAFN.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B1B3863C1BF4DA2800234748 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0710;
+				ORGANIZATIONNAME = yjh4866;
+				TargetAttributes = {
+					B1B386431BF4DA2800234748 = {
+						CreatedOnToolsVersion = 7.1;
+					};
+				};
+			};
+			buildConfigurationList = B1B3863F1BF4DA2800234748 /* Build configuration list for PBXProject "SimplifiedAFN" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B1B3863B1BF4DA2800234748;
+			productRefGroup = B1B386451BF4DA2800234748 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B1B386431BF4DA2800234748 /* SimplifiedAFN */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B1B386421BF4DA2800234748 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1B3865A1BF4DA2900234748 /* LaunchScreen.storyboard in Resources */,
+				B1B386571BF4DA2900234748 /* Assets.xcassets in Resources */,
+				B1B386551BF4DA2900234748 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B1B386401BF4DA2800234748 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1B386521BF4DA2900234748 /* SecondViewController.m in Sources */,
+				B1B3864C1BF4DA2900234748 /* AppDelegate.m in Sources */,
+				B1B3864F1BF4DA2900234748 /* FirstViewController.m in Sources */,
+				B1B386491BF4DA2800234748 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		B1B386531BF4DA2900234748 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B1B386541BF4DA2900234748 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		B1B386581BF4DA2900234748 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B1B386591BF4DA2900234748 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		B1B3865C1BF4DA2900234748 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		B1B3865D1BF4DA2900234748 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B1B3865F1BF4DA2900234748 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = SimplifiedAFN/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.AppForYou.SimplifiedAFN;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		B1B386601BF4DA2900234748 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = SimplifiedAFN/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.AppForYou.SimplifiedAFN;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B1B3863F1BF4DA2800234748 /* Build configuration list for PBXProject "SimplifiedAFN" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1B3865C1BF4DA2900234748 /* Debug */,
+				B1B3865D1BF4DA2900234748 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B1B3865E1BF4DA2900234748 /* Build configuration list for PBXNativeTarget "SimplifiedAFN" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1B3865F1BF4DA2900234748 /* Debug */,
+				B1B386601BF4DA2900234748 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B1B3863C1BF4DA2800234748 /* Project object */;
+}
