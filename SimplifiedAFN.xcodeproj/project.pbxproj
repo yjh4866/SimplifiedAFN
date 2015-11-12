@@ -14,6 +14,7 @@
 		B1B386551BF4DA2900234748 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1B386531BF4DA2900234748 /* Main.storyboard */; };
 		B1B386571BF4DA2900234748 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1B386561BF4DA2900234748 /* Assets.xcassets */; };
 		B1B3865A1BF4DA2900234748 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1B386581BF4DA2900234748 /* LaunchScreen.storyboard */; };
+		B1B386641BF4DA6000234748 /* HTTPRequestManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B386631BF4DA6000234748 /* HTTPRequestManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,8 @@
 		B1B386561BF4DA2900234748 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B1B386591BF4DA2900234748 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B1B3865B1BF4DA2900234748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1B386621BF4DA6000234748 /* HTTPRequestManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTTPRequestManager.h; sourceTree = "<group>"; };
+		B1B386631BF4DA6000234748 /* HTTPRequestManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HTTPRequestManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +64,7 @@
 		B1B386461BF4DA2800234748 /* SimplifiedAFN */ = {
 			isa = PBXGroup;
 			children = (
+				B1B386611BF4DA6000234748 /* SimplifiedAFN */,
 				B1B3864A1BF4DA2900234748 /* AppDelegate.h */,
 				B1B3864B1BF4DA2900234748 /* AppDelegate.m */,
 				B1B3864D1BF4DA2900234748 /* FirstViewController.h */,
@@ -82,6 +86,15 @@
 				B1B386481BF4DA2800234748 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		B1B386611BF4DA6000234748 /* SimplifiedAFN */ = {
+			isa = PBXGroup;
+			children = (
+				B1B386621BF4DA6000234748 /* HTTPRequestManager.h */,
+				B1B386631BF4DA6000234748 /* HTTPRequestManager.m */,
+			);
+			path = SimplifiedAFN;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -154,6 +167,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B1B386641BF4DA6000234748 /* HTTPRequestManager.m in Sources */,
 				B1B386521BF4DA2900234748 /* SecondViewController.m in Sources */,
 				B1B3864C1BF4DA2900234748 /* AppDelegate.m in Sources */,
 				B1B3864F1BF4DA2900234748 /* FirstViewController.m in Sources */,
@@ -268,6 +282,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = SimplifiedAFN/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AppForYou.SimplifiedAFN;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -279,6 +294,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = SimplifiedAFN/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AppForYou.SimplifiedAFN;
 				PRODUCT_NAME = "$(TARGET_NAME)";

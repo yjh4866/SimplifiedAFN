@@ -7,8 +7,10 @@
 //
 
 #import "FirstViewController.h"
+#import "HTTPRequestManager.h"
 
 @interface FirstViewController ()
+@property (strong, nonatomic) IBOutlet UILabel *labelDetail;
 
 @end
 
@@ -17,6 +19,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    
+    [[HTTPRequestManager sharedManager] requestWebDataFromURL:@"http://www.baidu.com" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+        if (nil == error) {
+            self.labelDetail.text = [[NSString alloc] initWithData:webData encoding:NSUTF8StringEncoding];
+        }
+    }];
 }
 
 - (void)didReceiveMemoryWarning {
