@@ -20,9 +20,11 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
+    __weak typeof (self) weakSelf = self;
     [[HTTPRequestManager sharedManager] requestWebDataFromURL:@"http://www.baidu.com" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
         if (nil == error) {
-            self.labelDetail.text = [[NSString alloc] initWithData:webData encoding:NSUTF8StringEncoding];
+            NSLog(@"正常收到服务器返回的数据了");
+            weakSelf.labelDetail.text = [[NSString alloc] initWithData:webData encoding:NSUTF8StringEncoding];
         }
     }];
 }
@@ -30,6 +32,11 @@
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)dealloc
+{
+    NSLog(@"释放 %s", object_getClassName(self));
 }
 
 @end

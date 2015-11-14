@@ -428,7 +428,7 @@ static dispatch_group_t urlsession_completion_group() {
 #else
         self.operationQueue = [[[NSOperationQueue alloc] init] autorelease];
 #endif
-        if ([[UIDevice currentDevice].systemVersion floatValue] >= 10.0) {
+        if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0) {
             self.urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:self.operationQueue];
             self.mdicTaskItemForTaskIdentifier = [[NSMutableDictionary alloc] init];
             self.lock = [[NSLock alloc] init];
@@ -513,7 +513,6 @@ static dispatch_group_t urlsession_completion_group() {
             urlSessionTask = [self.urlSession dataTaskWithRequest:request];
         });
         // 配备Delegate
-        [self.lock lock];
         URLSessionTaskItem *taskItem = [[URLSessionTaskItem alloc] init];
         taskItem.urlSessionTask = urlSessionTask;
         taskItem.progress = progress;
@@ -526,7 +525,6 @@ static dispatch_group_t urlsession_completion_group() {
 #else
         [taskItem release];
 #endif
-        [self.lock unlock];
         // 启动网络连接
         [urlSessionTask resume];
     }
