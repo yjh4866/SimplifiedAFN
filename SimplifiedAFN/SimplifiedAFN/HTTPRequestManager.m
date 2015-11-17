@@ -20,7 +20,6 @@ static dispatch_group_t urlconnection_operation_completion_group() {
     dispatch_once(&onceToken, ^{
         urlconnection_operation_completion_group = dispatch_group_create();
     });
-    
     return urlconnection_operation_completion_group;
 }
 
@@ -28,9 +27,8 @@ static dispatch_queue_t urlconnection_operation_completion_queue() {
     static dispatch_queue_t urlconnection_operation_completion_queue;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        urlconnection_operation_completion_queue = dispatch_queue_create("com.yjh4866.urlconnection.completion", DISPATCH_QUEUE_CONCURRENT );
+        urlconnection_operation_completion_queue = dispatch_queue_create("com.yjh4866.urlconnection.completion.queue", DISPATCH_QUEUE_CONCURRENT);
     });
-    
     return urlconnection_operation_completion_queue;
 }
 
@@ -40,7 +38,6 @@ static dispatch_group_t http_request_operation_completion_group() {
     dispatch_once(&onceToken, ^{
         http_request_operation_completion_group = dispatch_group_create();
     });
-    
     return http_request_operation_completion_group;
 }
 
@@ -48,9 +45,8 @@ static dispatch_queue_t http_request_operation_processing_queue() {
     static dispatch_queue_t http_request_operation_processing_queue;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        http_request_operation_processing_queue = dispatch_queue_create("com.yjh4866.http_request.processing", DISPATCH_QUEUE_CONCURRENT);
+        http_request_operation_processing_queue = dispatch_queue_create("com.yjh4866.http_request.processing.queue", DISPATCH_QUEUE_CONCURRENT);
     });
-    
     return http_request_operation_processing_queue;
 }
 
@@ -106,7 +102,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 
 + (void)networkRequestThreadEntryPoint:(id)__unused object {
     @autoreleasepool {
-        [[NSThread currentThread] setName:@"yjh4866.HTTPRequestManager"];
+        [[NSThread currentThread] setName:@"yjh4866.URLConnectionOperation"];
         
         NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
         [runLoop addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
@@ -129,11 +125,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 {
     self = [super init];
     if (self) {
-#if __has_feature(objc_arc)
         self.mdataCache = [[NSMutableData alloc] init];
-#else
-        self.mdataCache = [[[NSMutableData alloc] init] autorelease];
-#endif
         self.request = urlRequest;
         _taskStatus = URLConnectionStatus_Waiting;
         
@@ -145,19 +137,6 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 
 - (void)dealloc
 {
-#if __has_feature(objc_arc)
-#else
-    self.lock = nil;
-    self.urlConnection = nil;
-    self.request = nil;
-    self.httpResponse = nil;
-    self.mdataCache = nil;
-    self.progress = nil;
-    self.error = nil;
-    self.param = nil;
-    self.completionQueue = nil;
-    [super dealloc];
-#endif
 }
 
 - (void)setTaskStatus:(URLConnectionStatus)taskStatus {
@@ -187,7 +166,6 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
     if (!block) {
         [super setCompletionBlock:nil];
     } else {
-#if __has_feature(objc_arc)
         __weak __typeof(self)weakSelf = self;
         [super setCompletionBlock:^ {
             
@@ -202,20 +180,6 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
                 [strongSelf setCompletionBlock:nil];
             });
         }];
-#else
-        [super setCompletionBlock:^ {
-            
-            dispatch_group_t group = urlconnection_operation_completion_group();
-            
-            dispatch_group_async(group, dispatch_get_main_queue(), ^{
-                block();
-            });
-            
-            dispatch_group_notify(group, urlconnection_operation_completion_queue(), ^{
-                [super setCompletionBlock:nil];
-            });
-        }];
-#endif
     }
     [self.lock unlock];
 }
@@ -245,11 +209,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 - (void)operationDidStart {
     [self.lock lock];
     // 用NSURLConnection创建网络连接
-#if __has_feature(objc_arc)
     self.urlConnection = [[NSURLConnection alloc] initWithRequest:self.request delegate:self startImmediately:NO];
-#else
-    self.urlConnection = [[[NSURLConnection alloc] initWithRequest:self.request delegate:self startImmediately:NO] autorelease];
-#endif
     // 启动网络连接
     [self.urlConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     [self.urlConnection start];
@@ -341,7 +301,7 @@ static dispatch_queue_t urlsession_creation_queue() {
     static dispatch_queue_t urlsession_creation_queue;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        urlsession_creation_queue = dispatch_queue_create("com.yjh4866.urlsession.creation", DISPATCH_QUEUE_SERIAL);
+        urlsession_creation_queue = dispatch_queue_create("com.yjh4866.urlsession.creation.queue", DISPATCH_QUEUE_SERIAL);
     });
     
     return urlsession_creation_queue;
@@ -380,28 +340,13 @@ static dispatch_group_t urlsession_completion_group() {
 {
     self = [super init];
     if (self) {
-#if __has_feature(objc_arc)
         self.mdataCache = [[NSMutableData alloc] init];
-#else
-        self.mdataCache = [[[NSMutableData alloc] init] autorelease];
-#endif
     }
     return self;
 }
 - (void)dealloc
 {
-#if __has_feature(objc_arc)
-#else
-    self.urlSessionTask = nil;
-    self.request = nil;
-    self.httpResponse = nil;
-    self.mdataCache = nil;
-    self.progress = nil;
-    self.result = nil;
-    self.param = nil;
-    self.completionQueue = nil;
-    [super dealloc];
-#endif
+    
 }
 - (int64_t)totalBytes
 {
@@ -428,12 +373,10 @@ static dispatch_group_t urlsession_completion_group() {
 {
     self = [super init];
     if (self) {
-#if __has_feature(objc_arc)
         self.operationQueue = [[NSOperationQueue alloc] init];
-#else
-        self.operationQueue = [[[NSOperationQueue alloc] init] autorelease];
-#endif
+        // 系统版本为7.0及以上，则采用NSURLSession来发网络请求
         if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0) {
+            self.operationQueue.maxConcurrentOperationCount = 1;
             self.urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:self.operationQueue];
             self.mdicTaskItemForTaskIdentifier = [[NSMutableDictionary alloc] init];
             self.lock = [[NSLock alloc] init];
@@ -445,17 +388,9 @@ static dispatch_group_t urlsession_completion_group() {
 
 - (void)dealloc
 {
-#if __has_feature(objc_arc)
-#else
-    self.operationQueue = nil;
-    self.urlSession = nil;
-    self.mdicTaskItemForTaskIdentifier = nil;
-    self.lock = nil;
-    [super dealloc];
-#endif
 }
 
-// 通用对象
+// 通用单例
 + (HTTPRequestManager *)sharedManager
 {
     static HTTPRequestManager *sharedManager = nil;
@@ -471,7 +406,8 @@ static dispatch_group_t urlsession_completion_group() {
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
                     andResult:(HTTPRequestResult)result
 {
-    return [self requestWebDataFromURL:url withParam:dicParam progress:nil andResult:result];
+    return [self requestWebDataFromURL:url withParam:dicParam
+                              progress:nil andResult:result];
 }
 
 // 根据NSURLRequest获取Web数据
@@ -479,7 +415,8 @@ static dispatch_group_t urlsession_completion_group() {
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
                         andResult:(HTTPRequestResult)result
 {
-    return [self requestWebDataWithRequest:request param:dicParam progress:nil andResult:result];
+    return [self requestWebDataWithRequest:request param:dicParam
+                                  progress:nil andResult:result];
 }
 
 // 根据url获取Web数据
@@ -488,11 +425,10 @@ static dispatch_group_t urlsession_completion_group() {
                      progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result
 {
     // 实例化NSMutableURLRequest
-    NSMutableURLRequest *mURLRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
-    [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData];
-    [mURLRequest setTimeoutInterval:10.0f];
+    NSURLRequest *urlRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
     // 开始请求数据
-    return [self requestWebDataWithRequest:mURLRequest param:dicParam progress:progress andResult:result];
+    return [self requestWebDataWithRequest:urlRequest param:dicParam
+                                  progress:progress andResult:result];
 }
 
 // 根据NSURLRequest获取Web数据
@@ -500,13 +436,14 @@ static dispatch_group_t urlsession_completion_group() {
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
                          progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result
 {
-    return [self requestWebDataWithRequest:request param:dicParam progress:progress andResult:result onDispatchQueue:nil];
+    return [self requestWebDataWithRequest:request param:dicParam progress:progress
+                                 andResult:result onCompletionQueue:nil];
 }
 
 // 根据NSURLRequest获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result onDispatchQueue:(dispatch_queue_t)completionQueue
+                         progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result onCompletionQueue:(dispatch_queue_t)completionQueue
 {
     if (self.urlSession) {
         [self.lock lock];
@@ -525,7 +462,7 @@ static dispatch_group_t urlsession_completion_group() {
         dispatch_sync(urlsession_creation_queue(), ^{
             urlSessionTask = [self.urlSession dataTaskWithRequest:request];
         });
-        // 配备Delegate
+        // 配备任务项以保存相关数据
         URLSessionTaskItem *taskItem = [[URLSessionTaskItem alloc] init];
         taskItem.urlSessionTask = urlSessionTask;
         taskItem.progress = progress;
@@ -535,10 +472,6 @@ static dispatch_group_t urlsession_completion_group() {
         [self.lock lock];
         self.mdicTaskItemForTaskIdentifier[@(urlSessionTask.taskIdentifier)] = taskItem;
         [self.lock unlock];
-#if __has_feature(objc_arc)
-#else
-        [taskItem release];
-#endif
         // 启动网络连接
         [urlSessionTask resume];
     }
@@ -558,10 +491,6 @@ static dispatch_group_t urlsession_completion_group() {
         operation.completionQueue = completionQueue;
         [operation setHTTPRequestResult:result];
         [self.operationQueue addOperation:operation];
-#if __has_feature(objc_arc)
-#else
-        [operation release];
-#endif
     }
     return YES;
 }

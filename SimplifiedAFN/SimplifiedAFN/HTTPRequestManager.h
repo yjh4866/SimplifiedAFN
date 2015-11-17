@@ -35,7 +35,7 @@ typedef void (^HTTPRequestProgress)(NSData *webData, int64_t bytesReceived,
  */
 @interface HTTPRequestManager : NSObject
 
-// 通用对象
+// 通用单例
 + (HTTPRequestManager *)sharedManager;
 
 // 根据url获取Web数据
