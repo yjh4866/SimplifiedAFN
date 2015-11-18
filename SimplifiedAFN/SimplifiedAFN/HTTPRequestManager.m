@@ -453,6 +453,7 @@ static dispatch_group_t urlsession_completion_group() {
             if ([taskItem.param isEqualToDictionary:dicParam] &&
                 NSURLSessionTaskStateCanceling != taskItem.urlSessionTask.state &&
                 NSURLSessionTaskStateCompleted != taskItem.urlSessionTask.state) {
+                [self.lock unlock];
                 return NO;
             }
         }
