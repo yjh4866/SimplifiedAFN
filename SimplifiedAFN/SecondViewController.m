@@ -28,8 +28,9 @@
             NSLog(@"保存路径：%@", filePath);
         }
         else {
-            NSLog(@"下载失败:%@", error);
+            NSLog(@"下载失败：%@", error);
         }
+        NSLog(@"回传参数：%@", dicParam);
     }];
 }
 

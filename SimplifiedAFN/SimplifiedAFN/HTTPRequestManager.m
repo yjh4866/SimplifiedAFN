@@ -166,7 +166,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
     if (!block) {
         [super setCompletionBlock:nil];
     } else {
-        __weak __typeof(self)weakSelf = self;
+        __weak typeof(self) weakSelf = self;
         [super setCompletionBlock:^ {
             
             dispatch_group_t group = urlconnection_operation_completion_group();
@@ -175,7 +175,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
                 block();
             });
             
-            __strong __typeof(weakSelf)strongSelf = weakSelf;
+            __strong typeof(weakSelf) strongSelf = weakSelf;
             dispatch_group_notify(group, urlconnection_operation_completion_queue(), ^{
                 [strongSelf setCompletionBlock:nil];
             });

@@ -168,7 +168,7 @@ typedef void (^Block_Void)();
         self.lock = [[NSRecursiveLock alloc] init];
         self.lock.name = @"com.yjh4866.HTTPFileTaskOperation.lock";
         
-        __weak typeof (self) weakSelf = self;
+        __weak typeof(self) weakSelf = self;
         self.executeSubTask = ^() {
             [weakSelf.lock lock];
             // 一共下载两次，即下载失败可以再试一次
@@ -178,12 +178,14 @@ typedef void (^Block_Void)();
             }
             // 下载失败
             else {
-                weakSelf.taskStatus = HTTPFileTaskStatus_Finished;
                 // 文件下载任务结束
+                weakSelf.taskStatus = HTTPFileTaskStatus_Finished;
+                // GCD异步通过dispatch_get_main_queue回调
+                __strong typeof(weakSelf) strongSelf = weakSelf;
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    if (weakSelf.result) {
+                    if (strongSelf.result) {
                         NSError *error = [NSError errorWithDomain:@"HTTPFileManager" code:NSURLErrorTimedOut userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"未下载完成"]}];
-                        weakSelf.result(nil, weakSelf.httpResponse, error, weakSelf.param);
+                        strongSelf.result(nil, strongSelf.httpResponse, error, strongSelf.param);
                     }
                 });
             }
