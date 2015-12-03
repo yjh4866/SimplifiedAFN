@@ -14,8 +14,8 @@
 		B1B386551BF4DA2900234748 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1B386531BF4DA2900234748 /* Main.storyboard */; };
 		B1B386571BF4DA2900234748 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1B386561BF4DA2900234748 /* Assets.xcassets */; };
 		B1B3865A1BF4DA2900234748 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1B386581BF4DA2900234748 /* LaunchScreen.storyboard */; };
-		B1B386641BF4DA6000234748 /* HTTPRequestManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B386631BF4DA6000234748 /* HTTPRequestManager.m */; };
-		B1C78FE91BF71C97005C7D20 /* HTTPFileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B1C78FE81BF71C97005C7D20 /* HTTPFileManager.m */; };
+		B1B386641BF4DA6000234748 /* NBLHTTPManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B386631BF4DA6000234748 /* NBLHTTPManager.m */; };
+		B1C78FE91BF71C97005C7D20 /* NBLHTTPFileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B1C78FE81BF71C97005C7D20 /* NBLHTTPFileManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,10 +31,10 @@
 		B1B386561BF4DA2900234748 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B1B386591BF4DA2900234748 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B1B3865B1BF4DA2900234748 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B1B386621BF4DA6000234748 /* HTTPRequestManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTTPRequestManager.h; sourceTree = "<group>"; };
-		B1B386631BF4DA6000234748 /* HTTPRequestManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HTTPRequestManager.m; sourceTree = "<group>"; };
-		B1C78FE71BF71C97005C7D20 /* HTTPFileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTTPFileManager.h; sourceTree = "<group>"; };
-		B1C78FE81BF71C97005C7D20 /* HTTPFileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HTTPFileManager.m; sourceTree = "<group>"; };
+		B1B386621BF4DA6000234748 /* NBLHTTPManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NBLHTTPManager.h; sourceTree = "<group>"; };
+		B1B386631BF4DA6000234748 /* NBLHTTPManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NBLHTTPManager.m; sourceTree = "<group>"; };
+		B1C78FE71BF71C97005C7D20 /* NBLHTTPFileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NBLHTTPFileManager.h; sourceTree = "<group>"; };
+		B1C78FE81BF71C97005C7D20 /* NBLHTTPFileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NBLHTTPFileManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,10 +94,10 @@
 		B1B386611BF4DA6000234748 /* SimplifiedAFN */ = {
 			isa = PBXGroup;
 			children = (
-				B1C78FE71BF71C97005C7D20 /* HTTPFileManager.h */,
-				B1C78FE81BF71C97005C7D20 /* HTTPFileManager.m */,
-				B1B386621BF4DA6000234748 /* HTTPRequestManager.h */,
-				B1B386631BF4DA6000234748 /* HTTPRequestManager.m */,
+				B1C78FE71BF71C97005C7D20 /* NBLHTTPFileManager.h */,
+				B1C78FE81BF71C97005C7D20 /* NBLHTTPFileManager.m */,
+				B1B386621BF4DA6000234748 /* NBLHTTPManager.h */,
+				B1B386631BF4DA6000234748 /* NBLHTTPManager.m */,
 			);
 			path = SimplifiedAFN;
 			sourceTree = "<group>";
@@ -172,8 +172,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1C78FE91BF71C97005C7D20 /* HTTPFileManager.m in Sources */,
-				B1B386641BF4DA6000234748 /* HTTPRequestManager.m in Sources */,
+				B1C78FE91BF71C97005C7D20 /* NBLHTTPFileManager.m in Sources */,
+				B1B386641BF4DA6000234748 /* NBLHTTPManager.m in Sources */,
 				B1B386521BF4DA2900234748 /* SecondViewController.m in Sources */,
 				B1B3864C1BF4DA2900234748 /* AppDelegate.m in Sources */,
 				B1B3864F1BF4DA2900234748 /* FirstViewController.m in Sources */,

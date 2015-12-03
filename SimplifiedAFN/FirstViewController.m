@@ -7,7 +7,7 @@
 //
 
 #import "FirstViewController.h"
-#import "HTTPRequestManager.h"
+#import "NBLHTTPManager.h"
 
 @interface FirstViewController ()
 @property (strong, nonatomic) IBOutlet UILabel *labelDetail;
@@ -21,7 +21,7 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     __weak typeof (self) weakSelf = self;
-    [[HTTPRequestManager sharedManager] requestWebDataFromURL:@"http://www.baidu.com" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+    [[NBLHTTPManager sharedManager] requestWebDataFromURL:@"http://www.baidu.com" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
         if (nil == error) {
             NSLog(@"正常收到服务器返回的数据了");
             weakSelf.labelDetail.text = [[NSString alloc] initWithData:webData encoding:NSUTF8StringEncoding];

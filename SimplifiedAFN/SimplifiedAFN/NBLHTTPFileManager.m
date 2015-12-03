@@ -1,39 +1,53 @@
+// The MIT License (MIT)
 //
-//  HTTPFileManager.m
-//  SimplifiedAFN
+// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866 )
 //
-//  Created by yangjh on 15/11/14.
-//  Copyright © 2015年 yjh4866. All rights reserved.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-#import "HTTPFileManager.h"
+#import "NBLHTTPFileManager.h"
 #import <CommonCrypto/CommonDigest.h>
-#import "HTTPRequestManager.h"
+#import "NBLHTTPManager.h"
 
 
 #define FilePath(url)   [NSTemporaryDirectory() stringByAppendingPathComponent:transferFileNameFromURL(url)]
 #define FilePath_Temp(filePath)   [filePath stringByAppendingPathExtension:@"yjh4866"]
 
 
-typedef NS_ENUM(unsigned int, HTTPFileTaskStatus) {
-    HTTPFileTaskStatus_Canceling = 1,
-    HTTPFileTaskStatus_Waiting,
-    HTTPFileTaskStatus_GetFileSize,
-    HTTPFileTaskStatus_GetFileData,
-    HTTPFileTaskStatus_Finished,
+typedef NS_ENUM(unsigned int, NBLHTTPFileTaskStatus) {
+    NBLHTTPFileTaskStatus_Canceling = 1,
+    NBLHTTPFileTaskStatus_Waiting,
+    NBLHTTPFileTaskStatus_GetFileSize,
+    NBLHTTPFileTaskStatus_GetFileData,
+    NBLHTTPFileTaskStatus_Finished,
 };
 
-static inline NSString * KeyPathFromHTTPFileTaskStatus(HTTPFileTaskStatus state) {
+static inline NSString * KeyPathFromHTTPFileTaskStatus(NBLHTTPFileTaskStatus state) {
     switch (state) {
-        case HTTPFileTaskStatus_Canceling:
+        case NBLHTTPFileTaskStatus_Canceling:
             return @"isCanceling";
-        case HTTPFileTaskStatus_Waiting:
+        case NBLHTTPFileTaskStatus_Waiting:
             return @"isWaiting";
-        case HTTPFileTaskStatus_GetFileSize:
+        case NBLHTTPFileTaskStatus_GetFileSize:
             return @"isGettingFileSize";
-        case HTTPFileTaskStatus_GetFileData:
+        case NBLHTTPFileTaskStatus_GetFileData:
             return @"isGettingFileData";
-        case HTTPFileTaskStatus_Finished:
+        case NBLHTTPFileTaskStatus_Finished:
             return @"isFinished";
         default: {
 #pragma clang diagnostic push
@@ -87,22 +101,22 @@ static dispatch_queue_t httpfile_operation_completion_queue() {
 }
 
 
-#pragma mark - HTTPRequestManager (HTTPFileManager)
+#pragma mark -  NBLHTTPManager (NBLHTTPFileManager)
 
-@interface HTTPRequestManager (Private)
+@interface  NBLHTTPManager (Private)
 // 根据NSURLRequest获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result onCompletionQueue:(dispatch_queue_t)completionQueue;
+                         progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result onCompletionQueue:(dispatch_queue_t)completionQueue;
 @end
-@implementation HTTPRequestManager (HTTPFileManager)
-// HTTPFileManager的专用单例
-+ (HTTPRequestManager *)sharedManagerForHTTPFileManger
+@implementation NBLHTTPManager (NBLHTTPFileManager)
+// NBLHTTPFileManager的专用单例
++ (NBLHTTPManager *)sharedManagerForHTTPFileManger
 {
-    static HTTPRequestManager *sharedManagerForHTTPFileManger = nil;
+    static NBLHTTPManager *sharedManagerForHTTPFileManger = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedManagerForHTTPFileManger = [[HTTPRequestManager alloc] init];
+        sharedManagerForHTTPFileManger = [[NBLHTTPManager alloc] init];
     });
     return sharedManagerForHTTPFileManger;
 }
@@ -111,9 +125,9 @@ static dispatch_queue_t httpfile_operation_completion_queue() {
 
 typedef void (^Block_Void)();
 
-#pragma mark - HTTPFileTaskOperation
+#pragma mark - NBLHTTPFileTaskOperation
 
-@interface HTTPFileTaskOperation : NSOperation
+@interface NBLHTTPFileTaskOperation : NSOperation
 @property (readwrite, nonatomic, strong) NSRecursiveLock *lock;
 @property (nonatomic, strong) NSString *filePath;
 @property (nonatomic, strong) NSString *url;
@@ -125,19 +139,19 @@ typedef void (^Block_Void)();
 @property (nonatomic, assign) int countOfExecuteSubTask;
 @property (nonatomic, assign) int errCountOfSubTask;
 @property (nonatomic, copy) Block_Void executeSubTask;
-@property (nonatomic, assign) HTTPFileTaskStatus taskStatus;
-@property (nonatomic, copy) HTTPFileProgress progress;
-@property (nonatomic, copy) HTTPFileResult result;
+@property (nonatomic, assign) NBLHTTPFileTaskStatus taskStatus;
+@property (nonatomic, copy) NBLHTTPFileProgress progress;
+@property (nonatomic, copy) NBLHTTPFileResult result;
 - (instancetype)init NS_UNAVAILABLE;
 @end
 
-#pragma mark Implementation HTTPFileTaskOperation
+#pragma mark Implementation NBLHTTPFileTaskOperation
 
-@implementation HTTPFileTaskOperation
+@implementation NBLHTTPFileTaskOperation
 
 + (void)networkRequestThreadEntryPoint:(id)__unused object {
     @autoreleasepool {
-        [[NSThread currentThread] setName:@"yjh4866.HTTPFileTaskOperation"];
+        [[NSThread currentThread] setName:@"yjh4866.NBLHTTPFileTaskOperation"];
         
         NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
         [runLoop addPort:[NSMachPort port] forMode:NSDefaultRunLoopMode];
@@ -162,11 +176,11 @@ typedef void (^Block_Void)();
     if (self) {
         self.filePath = filePath;
         self.url = url;
-        _taskStatus = HTTPFileTaskStatus_Waiting;
+        _taskStatus = NBLHTTPFileTaskStatus_Waiting;
         self.countOfExecuteSubTask = 0;
         
         self.lock = [[NSRecursiveLock alloc] init];
-        self.lock.name = @"com.yjh4866.HTTPFileTaskOperation.lock";
+        self.lock.name = @"com.yjh4866.NBLHTTPFileTaskOperation.lock";
         
         __weak typeof(self) weakSelf = self;
         self.executeSubTask = ^() {
@@ -174,17 +188,17 @@ typedef void (^Block_Void)();
             // 一共下载两次，即下载失败可以再试一次
             if (weakSelf.countOfExecuteSubTask < 2) {
                 // 启动线程以执行子任务
-                [weakSelf performSelector:@selector(operationDidStart) onThread:[HTTPFileTaskOperation networkRequestThread] withObject:nil waitUntilDone:NO modes:@[NSRunLoopCommonModes]];
+                [weakSelf performSelector:@selector(operationDidStart) onThread:[NBLHTTPFileTaskOperation networkRequestThread] withObject:nil waitUntilDone:NO modes:@[NSRunLoopCommonModes]];
             }
             // 下载失败
             else {
                 // 文件下载任务结束
-                weakSelf.taskStatus = HTTPFileTaskStatus_Finished;
+                weakSelf.taskStatus = NBLHTTPFileTaskStatus_Finished;
                 // GCD异步通过dispatch_get_main_queue回调
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 dispatch_async(dispatch_get_main_queue(), ^{
                     if (strongSelf.result) {
-                        NSError *error = [NSError errorWithDomain:@"HTTPFileManager" code:NSURLErrorTimedOut userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"未下载完成"]}];
+                        NSError *error = [NSError errorWithDomain:@"NBLHTTPFileManager" code:NSURLErrorTimedOut userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"未下载完成"]}];
                         strongSelf.result(nil, strongSelf.httpResponse, error, strongSelf.param);
                     }
                 });
@@ -200,7 +214,7 @@ typedef void (^Block_Void)();
     
 }
 
-- (void)setTaskStatus:(HTTPFileTaskStatus)taskStatus {
+- (void)setTaskStatus:(NBLHTTPFileTaskStatus)taskStatus {
     [self.lock lock];
     NSString *oldStateKey = KeyPathFromHTTPFileTaskStatus(self.taskStatus);
     NSString *newStateKey = KeyPathFromHTTPFileTaskStatus(taskStatus);
@@ -216,16 +230,16 @@ typedef void (^Block_Void)();
 
 - (BOOL)isCancelled
 {
-    return HTTPFileTaskStatus_Canceling == self.taskStatus;
+    return NBLHTTPFileTaskStatus_Canceling == self.taskStatus;
 }
 - (BOOL)isExecuting
 {
-    return ((HTTPFileTaskStatus_GetFileSize == self.taskStatus) ||
-            (HTTPFileTaskStatus_GetFileData == self.taskStatus));
+    return ((NBLHTTPFileTaskStatus_GetFileSize == self.taskStatus) ||
+            (NBLHTTPFileTaskStatus_GetFileData == self.taskStatus));
 }
 - (BOOL)isFinished
 {
-    return HTTPFileTaskStatus_Finished == self.taskStatus;
+    return NBLHTTPFileTaskStatus_Finished == self.taskStatus;
 }
 
 - (void)start
@@ -266,7 +280,7 @@ typedef void (^Block_Void)();
                 }
             });
             // 执行子任务
-            self.taskStatus = HTTPFileTaskStatus_GetFileData;
+            self.taskStatus = NBLHTTPFileTaskStatus_GetFileData;
             self.executeSubTask();
         }
         else {
@@ -276,19 +290,19 @@ typedef void (^Block_Void)();
     }
     // 先获取文件大小
     if (needHeadRequest) {
-        self.taskStatus = HTTPFileTaskStatus_GetFileSize;
+        self.taskStatus = NBLHTTPFileTaskStatus_GetFileSize;
         // 创建URLRequest
         NSMutableURLRequest *mURLRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.url]];
         [mURLRequest setHTTPMethod:@"HEAD"];
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 获取文件大小
-        [[HTTPRequestManager sharedManager] requestWebDataWithRequest:mURLRequest param:@{@"Type": @"HEAD", @"url": self.url} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+        [[NBLHTTPManager sharedManager] requestWebDataWithRequest:mURLRequest param:@{@"Type": @"HEAD", @"url": self.url} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
             self.httpResponse = httpResponse;
             // 存在错误，或数据长度过短，则结束
             if (error || httpResponse.expectedContentLength < 1) {
                 // 文件下载任务结束
-                self.taskStatus = HTTPFileTaskStatus_Finished;
+                self.taskStatus = NBLHTTPFileTaskStatus_Finished;
                 dispatch_async(dispatch_get_main_queue(), ^{
                     if (self.result) {
                         self.result(self.filePath, self.httpResponse, error, self.param);
@@ -355,7 +369,7 @@ typedef void (^Block_Void)();
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 下载文件段
-        [[HTTPRequestManager sharedManagerForHTTPFileManger] requestWebDataWithRequest:mURLRequest param:@{@"url": self.url, @"Start": strKey, @"Len": mdicSubTask[@"Len"]} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestWebDataWithRequest:mURLRequest param:@{@"url": self.url, @"Start": strKey, @"Len": mdicSubTask[@"Len"]} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
             [self.lock lock];
             // 下载成功
             if (nil == error) {
@@ -400,7 +414,7 @@ typedef void (^Block_Void)();
                     [[NSFileManager defaultManager] removeItemAtPath:self.filePath error:nil];
                     [[NSFileManager defaultManager] moveItemAtPath:filePathTemp toPath:self.filePath error:nil];
                     // 文件下载任务结束
-                    self.taskStatus = HTTPFileTaskStatus_Finished;
+                    self.taskStatus = NBLHTTPFileTaskStatus_Finished;
                     dispatch_async(dispatch_get_main_queue(), ^{
                         if (self.result) {
                             self.result(self.filePath, self.httpResponse, nil, self.param);
@@ -425,16 +439,16 @@ typedef void (^Block_Void)();
 @end
 
 
-#pragma mark - HTTPFileManager
+#pragma mark - NBLHTTPFileManager
 
-@interface HTTPFileManager ()
+@interface NBLHTTPFileManager ()
 @property (nonatomic, strong) NSOperationQueue *operationQueue;
 @property (readwrite, nonatomic, strong) NSLock *lock;
 @end
 
-#pragma mark Implementation HTTPFileManager
+#pragma mark Implementation NBLHTTPFileManager
 
-@implementation HTTPFileManager
+@implementation NBLHTTPFileManager
 
 - (instancetype)init
 {
@@ -444,7 +458,7 @@ typedef void (^Block_Void)();
         self.operationQueue.maxConcurrentOperationCount = 1;
         
         self.lock = [[NSLock alloc] init];
-        self.lock.name = @"com.yjh4866.HTTPFileManager.lock";
+        self.lock.name = @"com.yjh4866.NBLHTTPFileManager.lock";
     }
     return self;
 }
@@ -454,23 +468,23 @@ typedef void (^Block_Void)();
 }
 
 // 通用对象
-+ (HTTPFileManager *)sharedManager
++ (NBLHTTPFileManager *)sharedManager
 {
-    static HTTPFileManager *sharedManager = nil;
+    static NBLHTTPFileManager *sharedManager = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedManager = [[HTTPFileManager alloc] init];
+        sharedManager = [[NBLHTTPFileManager alloc] init];
     });
     return sharedManager;
 }
 
 // 下载文件到指定路径
 - (void)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
-            progress:(HTTPFileProgress)progress andResult:(HTTPFileResult)result
+            progress:(NBLHTTPFileProgress)progress andResult:(NBLHTTPFileResult)result
 {
     [self.lock lock];
     // 先查一下下载任务是否已经存在
-    for (HTTPFileTaskOperation *operation in self.operationQueue.operations) {
+    for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
         // 参数相等，且未取消未完成
         if ([operation.param isEqualToDictionary:dicParam] &&
             !operation.isCancelled && !operation.finished) {
@@ -482,7 +496,7 @@ typedef void (^Block_Void)();
         filePath = FilePath(url);
     }
     // 创建Operation
-    HTTPFileTaskOperation *operation = [[HTTPFileTaskOperation alloc] initWithFilePath:filePath andUrl:url];
+    NBLHTTPFileTaskOperation *operation = [[NBLHTTPFileTaskOperation alloc] initWithFilePath:filePath andUrl:url];
     operation.progress = progress;
     operation.result = result;
     operation.param = dicParam;

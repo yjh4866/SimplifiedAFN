@@ -1,12 +1,26 @@
+// The MIT License (MIT)
 //
-//  HTTPRequestManager.m
-//  SimplifiedAFN
+// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866 )
 //
-//  Created by yangjh on 15/11/12.
-//  Copyright © 2015年 yjh4866. All rights reserved.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-#import "HTTPRequestManager.h"
+#import "NBLHTTPManager.h"
 #import <UIKit/UIKit.h>
 
 
@@ -85,7 +99,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 @property (nonatomic, strong) NSURLRequest *request;
 @property (nonatomic, strong) NSHTTPURLResponse *httpResponse;
 @property (nonatomic, strong) NSMutableData *mdataCache;
-@property (nonatomic, copy) HTTPRequestProgress progress;
+@property (nonatomic, copy) NBLHTTPProgress progress;
 @property (readwrite, nonatomic, strong) NSError *error;
 @property (nonatomic, strong) NSDictionary *param;
 @property (readwrite, nonatomic, assign) URLConnectionStatus taskStatus;
@@ -160,7 +174,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 
 #pragma mark NSOperation
 
-// 这里是为了让该NSOperation能正常释放，不然会在setHTTPRequestResult:中的block循环引用
+// 这里是为了让该NSOperation能正常释放，不然会在setHTTPResult:中的block循环引用
 - (void)setCompletionBlock:(void (^)(void))block {
     [self.lock lock];
     if (!block) {
@@ -225,7 +239,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
     [self.lock unlock];
 }
 
-- (void)setHTTPRequestResult:(HTTPRequestResult)result
+- (void)setHTTPResult:(NBLHTTPResult)result
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-retain-cycles"
@@ -325,8 +339,8 @@ static dispatch_group_t urlsession_completion_group() {
 @property (readwrite, nonatomic, strong) NSURLRequest *request;
 @property (nonatomic, strong) NSHTTPURLResponse *httpResponse;
 @property (nonatomic, strong) NSMutableData *mdataCache;
-@property (nonatomic, copy) HTTPRequestProgress progress;
-@property (nonatomic, copy) HTTPRequestResult result;
+@property (nonatomic, copy) NBLHTTPProgress progress;
+@property (nonatomic, copy) NBLHTTPResult result;
 @property (nonatomic, strong) NSDictionary *param;
 
 @property (nonatomic, strong, nullable) dispatch_queue_t completionQueue;
@@ -355,9 +369,9 @@ static dispatch_group_t urlsession_completion_group() {
 @end
 
 
-#pragma mark - HTTPRequestManager ()
+#pragma mark - NBLHTTPManager ()
 
-@interface HTTPRequestManager () <NSURLSessionDataDelegate>
+@interface NBLHTTPManager () <NSURLSessionDataDelegate>
 @property (nonatomic, strong) NSOperationQueue *operationQueue;
 @property (readwrite, nonatomic, strong) NSURLSession *urlSession;
 @property (readwrite, nonatomic, strong) NSMutableDictionary *mdicTaskItemForTaskIdentifier;
@@ -365,9 +379,9 @@ static dispatch_group_t urlsession_completion_group() {
 @end
 
 
-#pragma mark - Implementation HTTPRequestManager
+#pragma mark - Implementation NBLHTTPManager
 
-@implementation HTTPRequestManager
+@implementation NBLHTTPManager
 
 - (instancetype)init
 {
@@ -380,7 +394,7 @@ static dispatch_group_t urlsession_completion_group() {
             self.urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:self.operationQueue];
             self.mdicTaskItemForTaskIdentifier = [[NSMutableDictionary alloc] init];
             self.lock = [[NSLock alloc] init];
-            self.lock.name = @"com.yjh4866.HTTPRequestManager.lock";
+            self.lock.name = @"com.yjh4866.NBLHTTPManager.lock";
         }
     }
     return self;
@@ -391,12 +405,12 @@ static dispatch_group_t urlsession_completion_group() {
 }
 
 // 通用单例
-+ (HTTPRequestManager *)sharedManager
++ (NBLHTTPManager *)sharedManager
 {
-    static HTTPRequestManager *sharedManager = nil;
+    static NBLHTTPManager *sharedManager = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sharedManager = [[HTTPRequestManager alloc] init];
+        sharedManager = [[NBLHTTPManager alloc] init];
     });
     return sharedManager;
 }
@@ -404,7 +418,7 @@ static dispatch_group_t urlsession_completion_group() {
 // 根据url获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
-                    andResult:(HTTPRequestResult)result
+                    andResult:(NBLHTTPResult)result
 {
     return [self requestWebDataFromURL:url withParam:dicParam
                               progress:nil andResult:result];
@@ -413,7 +427,7 @@ static dispatch_group_t urlsession_completion_group() {
 // 根据NSURLRequest获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                        andResult:(HTTPRequestResult)result
+                        andResult:(NBLHTTPResult)result
 {
     return [self requestWebDataWithRequest:request param:dicParam
                                   progress:nil andResult:result];
@@ -422,7 +436,7 @@ static dispatch_group_t urlsession_completion_group() {
 // 根据url获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
-                     progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result
+                     progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
 {
     // 实例化NSMutableURLRequest
     NSURLRequest *urlRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
@@ -434,7 +448,7 @@ static dispatch_group_t urlsession_completion_group() {
 // 根据NSURLRequest获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result
+                         progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
 {
     return [self requestWebDataWithRequest:request param:dicParam progress:progress
                                  andResult:result onCompletionQueue:nil];
@@ -443,7 +457,7 @@ static dispatch_group_t urlsession_completion_group() {
 // 根据NSURLRequest获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(HTTPRequestProgress)progress andResult:(HTTPRequestResult)result onCompletionQueue:(dispatch_queue_t)completionQueue
+                         progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result onCompletionQueue:(dispatch_queue_t)completionQueue
 {
     if (self.urlSession) {
         [self.lock lock];
@@ -490,7 +504,7 @@ static dispatch_group_t urlsession_completion_group() {
         operation.progress = progress;
         operation.param = dicParam;
         operation.completionQueue = completionQueue;
-        [operation setHTTPRequestResult:result];
+        [operation setHTTPResult:result];
         [self.operationQueue addOperation:operation];
     }
     return YES;
