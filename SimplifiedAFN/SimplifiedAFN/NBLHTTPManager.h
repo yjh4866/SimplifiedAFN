@@ -52,6 +52,12 @@ typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, NSData *webData,
 // 通用单例
 + (NBLHTTPManager *)sharedManager;
 
+// 指定参数的网络请求是否存在
+- (BOOL)requestIsExist:(NSDictionary *)dicParam;
+
+// 指定url的网络请求是否存在
+- (BOOL)urlIsRequesting:(NSString *)url;
+
 // 根据url获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam

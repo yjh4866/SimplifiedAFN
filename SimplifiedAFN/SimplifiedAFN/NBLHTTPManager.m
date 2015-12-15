@@ -415,6 +415,66 @@ static dispatch_group_t urlsession_completion_group() {
     return sharedManager;
 }
 
+// 指定参数的网络请求是否存在
+- (BOOL)requestIsExist:(NSDictionary *)dicParam
+{
+    if (self.urlSession) {
+        [self.lock lock];
+        // 先查一下是否已经存在
+        for (URLSessionTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+            // 参数相等，且未取消未完成
+            if ([taskItem.param isEqualToDictionary:dicParam] &&
+                NSURLSessionTaskStateCanceling != taskItem.urlSessionTask.state &&
+                NSURLSessionTaskStateCompleted != taskItem.urlSessionTask.state) {
+                [self.lock unlock];
+                return YES;
+            }
+        }
+        [self.lock unlock];
+    }
+    else {
+        // 先查一下是否已经存在
+        for (URLConnectionOperation *operation in self.operationQueue.operations) {
+            // 参数相等，且未取消未完成
+            if ([operation.param isEqualToDictionary:dicParam] &&
+                !operation.isCancelled && !operation.finished) {
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+
+// 指定url的网络请求是否存在
+- (BOOL)urlIsRequesting:(NSString *)url
+{
+    if (self.urlSession) {
+        [self.lock lock];
+        // 先查一下是否已经存在
+        for (URLSessionTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+            // 参数相等，且未取消未完成
+            if ([taskItem.request.URL.absoluteString isEqualToString:url] &&
+                NSURLSessionTaskStateCanceling != taskItem.urlSessionTask.state &&
+                NSURLSessionTaskStateCompleted != taskItem.urlSessionTask.state) {
+                [self.lock unlock];
+                return YES;
+            }
+        }
+        [self.lock unlock];
+    }
+    else {
+        // 先查一下是否已经存在
+        for (URLConnectionOperation *operation in self.operationQueue.operations) {
+            // 参数相等，且未取消未完成
+            if ([operation.request.URL.absoluteString isEqualToString:url] &&
+                !operation.isCancelled && !operation.finished) {
+                return YES;
+            }
+        }
+    }
+    return NO;
+}
+
 // 根据url获取Web数据
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
