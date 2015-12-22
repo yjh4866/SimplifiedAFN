@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866 )
+// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866/SimplifiedAFN )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -315,7 +315,7 @@ static dispatch_queue_t urlsession_creation_queue() {
     static dispatch_queue_t urlsession_creation_queue;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        urlsession_creation_queue = dispatch_queue_create("com.yjh4866.urlsession.creation.queue", DISPATCH_QUEUE_SERIAL);
+        urlsession_creation_queue = dispatch_queue_create("com.yjh4866.urlsession.http.creation.queue", DISPATCH_QUEUE_SERIAL);
     });
     
     return urlsession_creation_queue;

@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866 )
+// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866/SimplifiedAFN )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,18 @@
 // SOFTWARE.
 
 #import "NBLHTTPFileManager.h"
+#import <UIKit/UIKit.h>
 #import <CommonCrypto/CommonDigest.h>
 #import "NBLHTTPManager.h"
 
 
 #define FilePath(url)   [NSTemporaryDirectory() stringByAppendingPathComponent:transferFileNameFromURL(url)]
-#define FilePath_Temp(filePath)   [filePath stringByAppendingPathExtension:@"yjh4866"]
+#define FilePath_Temp(filePath)   [filePath stringByAppendingPathExtension:[UIDevice currentDevice].systemVersion.floatValue>=7.0?@"NBLNewTempFile":@"NBLTempFile"]
 
+
+#pragma mark -
+#pragma mark - NSURLConnection方案
+#pragma mark -
 
 typedef NS_ENUM(unsigned int, NBLHTTPFileTaskStatus) {
     NBLHTTPFileTaskStatus_Canceling = 1,
@@ -439,10 +444,52 @@ typedef void (^Block_Void)();
 @end
 
 
+#pragma mark -
+#pragma mark - NSURLSessionDownloadTask方案
+#pragma mark -
+
+static dispatch_queue_t urlsession_creation_queue() {
+    static dispatch_queue_t urlsession_creation_queue;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        urlsession_creation_queue = dispatch_queue_create("com.yjh4866.urlsession.httpfile.creation.queue", DISPATCH_QUEUE_SERIAL);
+    });
+    
+    return urlsession_creation_queue;
+}
+
+static dispatch_group_t urlsession_completion_group() {
+    static dispatch_group_t urlsession_completion_group;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        urlsession_completion_group = dispatch_group_create();
+    });
+    
+    return urlsession_completion_group;
+}
+
+
+#pragma mark URLSessionDownloadTaskItem
+
+@interface URLSessionDownloadTaskItem : NSObject
+@property (nonatomic, strong) NSURLSessionDownloadTask *urlSessionTask;
+@property (nonatomic, strong) NSString *filePath;
+@property (nonatomic, strong) NSString *url;
+@property (nonatomic, strong) NSHTTPURLResponse *httpResponse;
+@property (nonatomic, copy) NBLHTTPFileProgress progress;
+@property (nonatomic, copy) NBLHTTPFileResult result;
+@property (nonatomic, strong) NSDictionary *param;
+@end
+@implementation URLSessionDownloadTaskItem
+@end
+
+
 #pragma mark - NBLHTTPFileManager
 
-@interface NBLHTTPFileManager ()
+@interface NBLHTTPFileManager () <NSURLSessionDataDelegate>
 @property (nonatomic, strong) NSOperationQueue *operationQueue;
+@property (readwrite, nonatomic, strong) NSURLSession *urlSession;
+@property (readwrite, nonatomic, strong) NSMutableDictionary *mdicTaskItemForTaskIdentifier;
 @property (readwrite, nonatomic, strong) NSLock *lock;
 @end
 
@@ -455,7 +502,14 @@ typedef void (^Block_Void)();
     self = [super init];
     if (self) {
         self.operationQueue = [[NSOperationQueue alloc] init];
-        self.operationQueue.maxConcurrentOperationCount = 1;
+        // 系统版本为7.0及以上，则采用NSURLSession来下载文件
+        if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0) {
+            self.operationQueue.maxConcurrentOperationCount = 1;
+            self.urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:self.operationQueue];
+            self.mdicTaskItemForTaskIdentifier = [[NSMutableDictionary alloc] init];
+            self.lock = [[NSLock alloc] init];
+            self.lock.name = @"com.yjh4866.NBLHTTPFileManager.lock";
+        }
         
         self.lock = [[NSLock alloc] init];
         self.lock.name = @"com.yjh4866.NBLHTTPFileManager.lock";
@@ -482,26 +536,205 @@ typedef void (^Block_Void)();
 - (void)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
             progress:(NBLHTTPFileProgress)progress andResult:(NBLHTTPFileResult)result
 {
-    [self.lock lock];
-    // 先查一下下载任务是否已经存在
-    for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
-        // 参数相等，且未取消未完成
-        if ([operation.param isEqualToDictionary:dicParam] &&
-            !operation.isCancelled && !operation.finished) {
-            return ;
+    if (self.urlSession) {
+        [self.lock lock];
+        // 先查一下是否已经存在
+        for (URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+            // 参数相等，且未取消未完成
+            if ([taskItem.param isEqualToDictionary:dicParam] &&
+                NSURLSessionTaskStateCanceling != taskItem.urlSessionTask.state &&
+                NSURLSessionTaskStateCompleted != taskItem.urlSessionTask.state) {
+                [self.lock unlock];
+                return ;
+            }
+        }
+        [self.lock unlock];
+        // 未给定文件保存路径，则生成一个路径
+        if (nil == filePath) {
+            filePath = FilePath(url);
+        }
+        // 创建NSURLSessionDataTask
+        __block NSURLSessionDownloadTask *urlSessionTask = nil;
+        dispatch_sync(urlsession_creation_queue(), ^{
+            // 如果临时文件存在，则用该文件继续下载
+            NSString *filePathTemp = FilePath_Temp(filePath);
+            NSData *fileData = [NSData dataWithContentsOfFile:filePathTemp];
+            if (fileData.length > 0) {
+                urlSessionTask = [self.urlSession downloadTaskWithResumeData:fileData];
+                // 删除临时文件
+                [[NSFileManager defaultManager] removeItemAtPath:filePathTemp error:nil];
+            }
+            // 临时文件不存在，或者创建失败则重新创建一个任务
+            if (nil == urlSessionTask) {
+                urlSessionTask = [self.urlSession downloadTaskWithURL:[NSURL URLWithString:url]];
+            }
+        });
+        // 配备任务项以保存相关数据
+        URLSessionDownloadTaskItem *taskItem = [[URLSessionDownloadTaskItem alloc] init];
+        taskItem.urlSessionTask = urlSessionTask;
+        taskItem.filePath = filePath;
+        taskItem.url = url;
+        taskItem.progress = progress;
+        taskItem.result = result;
+        taskItem.param = dicParam;
+        [self.lock lock];
+        self.mdicTaskItemForTaskIdentifier[@(urlSessionTask.taskIdentifier)] = taskItem;
+        [self.lock unlock];
+        // 启动网络连接
+        [urlSessionTask resume];
+    }
+    else {
+        // 先查一下下载任务是否已经存在
+        for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
+            // 参数相等，且未取消未完成
+            if ([operation.param isEqualToDictionary:dicParam] &&
+                !operation.isCancelled && !operation.finished) {
+                return ;
+            }
+        }
+        // 未给定文件保存路径，则生成一个路径
+        if (nil == filePath) {
+            filePath = FilePath(url);
+        }
+        // 创建Operation
+        NBLHTTPFileTaskOperation *operation = [[NBLHTTPFileTaskOperation alloc] initWithFilePath:filePath andUrl:url];
+        operation.progress = progress;
+        operation.result = result;
+        operation.param = dicParam;
+        [self.operationQueue addOperation:operation];
+    }
+}
+
+// 取消下载
+- (void)cancelDownloadFileFrom:(NSString *)url
+{
+    if (nil == url) {
+        return;
+    }
+    if (self.urlSession) {
+        [self.lock lock];
+        // 遍历任务队列
+        for (URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+            // 参数相等，且未完成，则取消该任务
+            if ([taskItem.url isEqualToString:url] &&
+                NSURLSessionTaskStateCompleted != taskItem.urlSessionTask.state) {
+                // 取消下载
+                [taskItem.urlSessionTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+                    // 保存到固定的临时目录以备续传
+                    NSString *filePathTemp = FilePath_Temp(taskItem.filePath);
+                    [resumeData writeToFile:filePathTemp atomically:YES];
+                }];
+            }
+        }
+        [self.lock unlock];
+    }
+    else {
+        // 遍历任务队列
+        for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
+            // 参数相等，且未完成，则取消该任务
+            if ([operation.url isEqualToString:url] && !operation.finished) {
+                [operation cancel];
+            }
         }
     }
-    // 未给定文件保存路径，则生成一个临时路径
-    if (nil == filePath) {
-        filePath = FilePath(url);
+}
+
+
+#pragma mark NSURLSessionDelegate
+
+/* The last message a session receives.  A session will only become
+ * invalid because of a systemic error or when it has been
+ * explicitly invalidated, in which case the error parameter will be nil.
+ */
+- (void)URLSession:(NSURLSession *)session didBecomeInvalidWithError:(NSError *)error
+{
+    [self.lock lock];
+    // 所有请求均出错
+    for (URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+        dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
+            if (taskItem.result) {
+                taskItem.result(taskItem.filePath, taskItem.httpResponse, error, taskItem.param);
+            }
+        });
     }
-    // 创建Operation
-    NBLHTTPFileTaskOperation *operation = [[NBLHTTPFileTaskOperation alloc] initWithFilePath:filePath andUrl:url];
-    operation.progress = progress;
-    operation.result = result;
-    operation.param = dicParam;
-    [self.operationQueue addOperation:operation];
+    [self.mdicTaskItemForTaskIdentifier removeAllObjects];
     [self.lock unlock];
+}
+
+#pragma mark NSURLSessionTaskDelegate
+
+/* Sent as the last message related to a specific task.  Error may be
+ * nil, which implies that no error occurred and this task is complete.
+ */
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task
+didCompleteWithError:(NSError *)error
+{
+    [self.lock lock];
+    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(task.taskIdentifier)];
+    [self.lock unlock];
+    // 网络连接意外断开，则需要保存缓存数据以备续传
+    if (error.userInfo[NSURLSessionDownloadTaskResumeData]) {
+        // 保存到固定的临时目录以备续传
+        NSString *filePathTemp = FilePath_Temp(taskItem.filePath);
+        [error.userInfo[NSURLSessionDownloadTaskResumeData] writeToFile:filePathTemp atomically:YES];
+    }
+    // 通知处理结果
+    dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
+        if (taskItem.result) {
+            taskItem.result(taskItem.filePath, taskItem.httpResponse, error, taskItem.param);
+        }
+    });
+    [self.lock lock];
+    [self.mdicTaskItemForTaskIdentifier removeObjectForKey:@(task.taskIdentifier)];
+    [self.lock unlock];
+}
+
+
+#pragma mark NSURLSessionDownloadTaskDelegate
+
+- (void)URLSession:(NSURLSession *)session
+      downloadTask:(NSURLSessionDownloadTask *)downloadTask
+didFinishDownloadingToURL:(NSURL *)location
+{
+    [self.lock lock];
+    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
+    [self.lock unlock];
+    // 移到指定的目录
+    NSURL *dstURL = [NSURL fileURLWithPath:taskItem.filePath];
+    [[NSFileManager defaultManager] moveItemAtURL:location toURL:dstURL error:nil];
+}
+
+- (void)URLSession:(__unused NSURLSession *)session
+      downloadTask:(__unused NSURLSessionDownloadTask *)downloadTask
+      didWriteData:(__unused int64_t)bytesWritten
+ totalBytesWritten:(int64_t)totalBytesWritten
+totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
+{
+    [self.lock lock];
+    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
+    [self.lock unlock];
+    // 告知进度更新
+    dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
+        if (taskItem.progress) {
+            taskItem.progress(downloadTask.countOfBytesReceived, downloadTask.countOfBytesExpectedToReceive, taskItem.param);
+        }
+    });
+}
+
+- (void)URLSession:(__unused NSURLSession *)session
+      downloadTask:(__unused NSURLSessionDownloadTask *)downloadTask
+ didResumeAtOffset:(int64_t)fileOffset
+expectedTotalBytes:(int64_t)expectedTotalBytes
+{
+    [self.lock lock];
+    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
+    [self.lock unlock];
+    // 告知进度更新
+    dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
+        if (taskItem.progress) {
+            taskItem.progress(downloadTask.countOfBytesReceived, downloadTask.countOfBytesExpectedToReceive, taskItem.param);
+        }
+    });
 }
 
 @end

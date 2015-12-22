@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866 )
+// Copyright (c) 2015-2016 NBL ( https://github.com/yjh4866/SimplifiedAFN )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ NSString *transferFileNameFromURL(NSString *url);
  *  @param dicParam      回传对象
  */
 typedef void (^NBLHTTPFileProgress)(int64_t bytesReceived, int64_t totalBytes,
-                                 NSDictionary *dicParam);
+                                    NSDictionary *dicParam);
 /**
  *  HTTP文件下载结果
  *
@@ -43,7 +43,7 @@ typedef void (^NBLHTTPFileProgress)(int64_t bytesReceived, int64_t totalBytes,
  *  @param dicParam     回传对象
  */
 typedef void (^NBLHTTPFileResult)(NSString *filePath, NSHTTPURLResponse *httpResponse,
-                               NSError *error, NSDictionary *dicParam);
+                                  NSError *error, NSDictionary *dicParam);
 
 
 /* 保留[[NBLHTTPFileManager alloc] init]的实例化方案。
@@ -57,5 +57,8 @@ typedef void (^NBLHTTPFileResult)(NSString *filePath, NSHTTPURLResponse *httpRes
 // 下载文件到指定路径
 - (void)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
             progress:(NBLHTTPFileProgress)progress andResult:(NBLHTTPFileResult)result;
+
+// 取消下载
+- (void)cancelDownloadFileFrom:(NSString *)url;
 
 @end
