@@ -532,27 +532,51 @@ static dispatch_group_t urlsession_completion_group() {
     return sharedManager;
 }
 
-// 下载文件到指定路径
-- (void)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
-            progress:(NBLHTTPFileProgress)progress andResult:(NBLHTTPFileResult)result
+// 指定url的下载任务是否存在
+- (BOOL)downloadTaskIsExist:(NSString *)url
 {
     if (self.urlSession) {
         [self.lock lock];
         // 先查一下是否已经存在
         for (URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
             // 参数相等，且未取消未完成
-            if ([taskItem.param isEqualToDictionary:dicParam] &&
+            if ([taskItem.url isEqualToString:url] &&
                 NSURLSessionTaskStateCanceling != taskItem.urlSessionTask.state &&
                 NSURLSessionTaskStateCompleted != taskItem.urlSessionTask.state) {
                 [self.lock unlock];
-                return ;
+                return YES;
             }
         }
         [self.lock unlock];
-        // 未给定文件保存路径，则生成一个路径
-        if (nil == filePath) {
-            filePath = FilePath(url);
+    }
+    else {
+        // 先查一下下载任务是否已经存在
+        for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
+            // 参数相等，且未取消未完成
+            if ([operation.url isEqualToString:url] &&
+                !operation.isCancelled && !operation.finished) {
+                return YES;
+            }
         }
+    }
+    return NO;
+}
+
+// 下载文件到指定路径
+// url相同则认为是同一下载任务
+- (BOOL)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
+            progress:(NBLHTTPFileProgress)progress andResult:(NBLHTTPFileResult)result
+{
+    // 任务已经存在则直接返回
+    if ([self downloadTaskIsExist:url]) {
+        return NO;
+    }
+    
+    // 未给定文件保存路径，则生成一个路径
+    if (nil == filePath) {
+        filePath = FilePath(url);
+    }
+    if (self.urlSession) {
         // 创建NSURLSessionDataTask
         __block NSURLSessionDownloadTask *urlSessionTask = nil;
         dispatch_sync(urlsession_creation_queue(), ^{
@@ -584,18 +608,6 @@ static dispatch_group_t urlsession_completion_group() {
         [urlSessionTask resume];
     }
     else {
-        // 先查一下下载任务是否已经存在
-        for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
-            // 参数相等，且未取消未完成
-            if ([operation.param isEqualToDictionary:dicParam] &&
-                !operation.isCancelled && !operation.finished) {
-                return ;
-            }
-        }
-        // 未给定文件保存路径，则生成一个路径
-        if (nil == filePath) {
-            filePath = FilePath(url);
-        }
         // 创建Operation
         NBLHTTPFileTaskOperation *operation = [[NBLHTTPFileTaskOperation alloc] initWithFilePath:filePath andUrl:url];
         operation.progress = progress;
@@ -603,6 +615,7 @@ static dispatch_group_t urlsession_completion_group() {
         operation.param = dicParam;
         [self.operationQueue addOperation:operation];
     }
+    return YES;
 }
 
 // 取消下载

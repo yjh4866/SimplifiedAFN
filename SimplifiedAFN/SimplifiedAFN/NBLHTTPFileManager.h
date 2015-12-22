@@ -54,8 +54,12 @@ typedef void (^NBLHTTPFileResult)(NSString *filePath, NSHTTPURLResponse *httpRes
 // 通用对象
 + (NBLHTTPFileManager *)sharedManager;
 
+// 指定url的下载任务是否存在
+- (BOOL)downloadTaskIsExist:(NSString *)url;
+
 // 下载文件到指定路径
-- (void)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
+// url相同则认为是同一下载任务
+- (BOOL)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
             progress:(NBLHTTPFileProgress)progress andResult:(NBLHTTPFileResult)result;
 
 // 取消下载

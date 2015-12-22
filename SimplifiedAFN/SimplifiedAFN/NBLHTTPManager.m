@@ -475,7 +475,7 @@ static dispatch_group_t urlsession_completion_group() {
     return NO;
 }
 
-// 根据url获取Web数据
+// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
                     andResult:(NBLHTTPResult)result
@@ -484,7 +484,7 @@ static dispatch_group_t urlsession_completion_group() {
                               progress:nil andResult:result];
 }
 
-// 根据NSURLRequest获取Web数据
+// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
                         andResult:(NBLHTTPResult)result
@@ -493,7 +493,7 @@ static dispatch_group_t urlsession_completion_group() {
                                   progress:nil andResult:result];
 }
 
-// 根据url获取Web数据
+// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
                      progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
@@ -505,7 +505,7 @@ static dispatch_group_t urlsession_completion_group() {
                                   progress:progress andResult:result];
 }
 
-// 根据NSURLRequest获取Web数据
+// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
                          progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
@@ -514,24 +514,17 @@ static dispatch_group_t urlsession_completion_group() {
                                  andResult:result onCompletionQueue:nil];
 }
 
-// 根据NSURLRequest获取Web数据
+// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
                          progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result onCompletionQueue:(dispatch_queue_t)completionQueue
 {
+    // 任务已经存在则直接返回
+    if ([self requestIsExist:dicParam] && [self urlIsRequesting:request.URL.absoluteString]) {
+        return NO;
+    }
+    
     if (self.urlSession) {
-        [self.lock lock];
-        // 先查一下是否已经存在
-        for (URLSessionTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
-            // 参数相等，且未取消未完成
-            if ([taskItem.param isEqualToDictionary:dicParam] &&
-                NSURLSessionTaskStateCanceling != taskItem.urlSessionTask.state &&
-                NSURLSessionTaskStateCompleted != taskItem.urlSessionTask.state) {
-                [self.lock unlock];
-                return NO;
-            }
-        }
-        [self.lock unlock];
         // 创建NSURLSessionDataTask
         __block NSURLSessionDataTask *urlSessionTask = nil;
         dispatch_sync(urlsession_creation_queue(), ^{
@@ -551,14 +544,6 @@ static dispatch_group_t urlsession_completion_group() {
         [urlSessionTask resume];
     }
     else {
-        // 先查一下是否已经存在
-        for (URLConnectionOperation *operation in self.operationQueue.operations) {
-            // 参数相等，且未取消未完成
-            if ([operation.param isEqualToDictionary:dicParam] &&
-                !operation.isCancelled && !operation.finished) {
-                return NO;
-            }
-        }
         // 创建Operation
         URLConnectionOperation *operation = [[URLConnectionOperation alloc] initWithURLRequest:request];
         operation.progress = progress;

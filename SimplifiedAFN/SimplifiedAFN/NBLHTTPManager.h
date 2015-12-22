@@ -58,22 +58,22 @@ typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, NSData *webData,
 // 指定url的网络请求是否存在
 - (BOOL)urlIsRequesting:(NSString *)url;
 
-// 根据url获取Web数据
+// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
                     andResult:(NBLHTTPResult)result;
 
-// 根据NSURLRequest获取Web数据
+// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
                         andResult:(NBLHTTPResult)result;
 
-// 根据url获取Web数据
+// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
                      progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
 
-// 根据NSURLRequest获取Web数据
+// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
                          progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
