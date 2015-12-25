@@ -691,12 +691,15 @@ didCompleteWithError:(NSError *)error
         NSString *filePathTemp = FilePath_Temp(taskItem.filePath);
         [error.userInfo[NSURLSessionDownloadTaskResumeData] writeToFile:filePathTemp atomically:YES];
     }
-    // 通知处理结果
-    dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
-        if (taskItem.result) {
-            taskItem.result(taskItem.filePath, taskItem.httpResponse, error, taskItem.param);
-        }
-    });
+    // 取消不算下载失败
+    if (NSURLErrorCancelled != error.code) {
+        // 通知下载结果
+        dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
+            if (taskItem.result) {
+                taskItem.result(taskItem.filePath, taskItem.httpResponse, error, taskItem.param);
+            }
+        });
+    }
     [self.lock lock];
     [self.mdicTaskItemForTaskIdentifier removeObjectForKey:@(task.taskIdentifier)];
     [self.lock unlock];

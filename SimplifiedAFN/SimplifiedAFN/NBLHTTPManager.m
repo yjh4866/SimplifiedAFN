@@ -617,12 +617,15 @@ didCompleteWithError:(NSError *)error
     [self.lock lock];
     URLSessionTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(task.taskIdentifier)];
     [self.lock unlock];
-    // 通知处理结果
-    dispatch_group_async(urlsession_completion_group(), taskItem.completionQueue?:dispatch_get_main_queue(), ^{
-        if (taskItem.result) {
-            taskItem.result(taskItem.httpResponse, taskItem.mdataCache, error, taskItem.param);
-        }
-    });
+    // 取消不算失败
+    if (NSURLErrorCancelled != error.code) {
+        // 通知网络请求结果
+        dispatch_group_async(urlsession_completion_group(), taskItem.completionQueue?:dispatch_get_main_queue(), ^{
+            if (taskItem.result) {
+                taskItem.result(taskItem.httpResponse, taskItem.mdataCache, error, taskItem.param);
+            }
+        });
+    }
     [self.lock lock];
     [self.mdicTaskItemForTaskIdentifier removeObjectForKey:@(task.taskIdentifier)];
     [self.lock unlock];
