@@ -24,6 +24,8 @@
 #import <UIKit/UIKit.h>
 
 
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+
 #pragma mark -
 #pragma mark - NSURLConnection方案
 #pragma mark -
@@ -306,6 +308,8 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 
 @end
 
+#endif
+
 
 #pragma mark -
 #pragma mark - NSURLSessionDataTask方案
@@ -432,6 +436,7 @@ static dispatch_group_t urlsession_completion_group() {
         }
         [self.lock unlock];
     }
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     else {
         // 先查一下是否已经存在
         for (URLConnectionOperation *operation in self.operationQueue.operations) {
@@ -442,6 +447,7 @@ static dispatch_group_t urlsession_completion_group() {
             }
         }
     }
+#endif
     return NO;
 }
 
@@ -462,6 +468,7 @@ static dispatch_group_t urlsession_completion_group() {
         }
         [self.lock unlock];
     }
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     else {
         // 先查一下是否已经存在
         for (URLConnectionOperation *operation in self.operationQueue.operations) {
@@ -472,6 +479,7 @@ static dispatch_group_t urlsession_completion_group() {
             }
         }
     }
+#endif
     return NO;
 }
 
@@ -542,7 +550,9 @@ static dispatch_group_t urlsession_completion_group() {
         [self.lock unlock];
         // 启动网络连接
         [urlSessionTask resume];
+        return YES;
     }
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     else {
         // 创建Operation
         URLConnectionOperation *operation = [[URLConnectionOperation alloc] initWithURLRequest:request];
@@ -551,8 +561,10 @@ static dispatch_group_t urlsession_completion_group() {
         operation.completionQueue = completionQueue;
         [operation setHTTPResult:result];
         [self.operationQueue addOperation:operation];
+        return YES;
     }
-    return YES;
+#endif
+    return NO;
 }
 
 // 取消网络请求
@@ -573,6 +585,7 @@ static dispatch_group_t urlsession_completion_group() {
         }
         [self.lock unlock];
     }
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     else {
         // 遍历任务队列
         for (URLConnectionOperation *operation in self.operationQueue.operations) {
@@ -582,6 +595,7 @@ static dispatch_group_t urlsession_completion_group() {
             }
         }
     }
+#endif
 }
 
 

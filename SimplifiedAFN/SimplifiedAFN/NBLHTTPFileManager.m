@@ -30,6 +30,33 @@
 #define FilePath_Temp(filePath)   [filePath stringByAppendingPathExtension:[UIDevice currentDevice].systemVersion.floatValue>=7.0?@"NBLNewTempFile":@"NBLTempFile"]
 
 
+// 将url转换为文件名
+NSString *transferFileNameFromURL(NSString *url)
+{
+    if (url.length > 0) {
+        // 将url字符MD5处理
+        const char *cStr = [url UTF8String];
+        unsigned char result[16];
+        CC_MD5(cStr, (CC_LONG)strlen(cStr), result);
+        NSString *fileName = [NSString stringWithFormat:
+                              @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                              result[0], result[1], result[2], result[3],
+                              result[4], result[5], result[6], result[7],
+                              result[8], result[9], result[10], result[11],
+                              result[12], result[13], result[14], result[15]];
+        // 加上后缀名
+        NSString *pathExtension = [[NSURL URLWithString:url] pathExtension];
+        if (pathExtension.length > 0) {
+            fileName = [fileName stringByAppendingPathExtension:pathExtension];
+        }
+        return fileName;
+    }
+    return @"";
+}
+
+
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+
 #pragma mark -
 #pragma mark - NSURLConnection方案
 #pragma mark -
@@ -61,30 +88,6 @@ static inline NSString * KeyPathFromHTTPFileTaskStatus(NBLHTTPFileTaskStatus sta
 #pragma clang diagnostic pop
         }
     }
-}
-
-// 将url转换为文件名
-NSString *transferFileNameFromURL(NSString *url)
-{
-    if (url.length > 0) {
-        // 将url字符MD5处理
-        const char *cStr = [url UTF8String];
-        unsigned char result[16];
-        CC_MD5(cStr, (CC_LONG)strlen(cStr), result);
-        NSString *fileName = [NSString stringWithFormat:
-                              @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-                              result[0], result[1], result[2], result[3],
-                              result[4], result[5], result[6], result[7],
-                              result[8], result[9], result[10], result[11],
-                              result[12], result[13], result[14], result[15]];
-        // 加上后缀名
-        NSString *pathExtension = [[NSURL URLWithString:url] pathExtension];
-        if (pathExtension.length > 0) {
-            fileName = [fileName stringByAppendingPathExtension:pathExtension];
-        }
-        return fileName;
-    }
-    return @"";
 }
 
 
@@ -443,6 +446,8 @@ typedef void (^Block_Void)();
 
 @end
 
+#endif
+
 
 #pragma mark -
 #pragma mark - NSURLSessionDownloadTask方案
@@ -549,6 +554,7 @@ static dispatch_group_t urlsession_completion_group() {
         }
         [self.lock unlock];
     }
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     else {
         // 先查一下下载任务是否已经存在
         for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
@@ -559,6 +565,7 @@ static dispatch_group_t urlsession_completion_group() {
             }
         }
     }
+#endif
     return NO;
 }
 
@@ -606,7 +613,9 @@ static dispatch_group_t urlsession_completion_group() {
         [self.lock unlock];
         // 启动网络连接
         [urlSessionTask resume];
+        return YES;
     }
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     else {
         // 创建Operation
         NBLHTTPFileTaskOperation *operation = [[NBLHTTPFileTaskOperation alloc] initWithFilePath:filePath andUrl:url];
@@ -614,8 +623,10 @@ static dispatch_group_t urlsession_completion_group() {
         operation.result = result;
         operation.param = dicParam;
         [self.operationQueue addOperation:operation];
+        return YES;
     }
-    return YES;
+#endif
+    return NO;
 }
 
 // 取消下载
@@ -641,6 +652,7 @@ static dispatch_group_t urlsession_completion_group() {
         }
         [self.lock unlock];
     }
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
     else {
         // 遍历任务队列
         for (NBLHTTPFileTaskOperation *operation in self.operationQueue.operations) {
@@ -650,6 +662,7 @@ static dispatch_group_t urlsession_completion_group() {
             }
         }
     }
+#endif
 }
 
 
