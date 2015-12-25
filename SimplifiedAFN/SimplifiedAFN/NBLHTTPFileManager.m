@@ -21,13 +21,12 @@
 // SOFTWARE.
 
 #import "NBLHTTPFileManager.h"
-#import <UIKit/UIKit.h>
 #import <CommonCrypto/CommonDigest.h>
 #import "NBLHTTPManager.h"
 
 
 #define FilePath(url)   [NSTemporaryDirectory() stringByAppendingPathComponent:transferFileNameFromURL(url)]
-#define FilePath_Temp(filePath)   [filePath stringByAppendingPathExtension:[UIDevice currentDevice].systemVersion.floatValue>=7.0?@"NBLNewTempFile":@"NBLTempFile"]
+#define FilePath_Temp(filePath)   [filePath stringByAppendingPathExtension:NSClassFromString(@"NSURLSession")?@"NBLNewTempFile":@"NBLTempFile"]
 
 
 // 将url转换为文件名
@@ -507,8 +506,8 @@ static dispatch_group_t urlsession_completion_group() {
     self = [super init];
     if (self) {
         self.operationQueue = [[NSOperationQueue alloc] init];
-        // 系统版本为7.0及以上，则采用NSURLSession来下载文件
-        if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0) {
+        // NSURLSession存在，即系统版本为7.0及以上，则采用NSURLSession来下载文件
+        if (NSClassFromString(@"NSURLSession")) {
             self.operationQueue.maxConcurrentOperationCount = 1;
             self.urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:self.operationQueue];
             self.mdicTaskItemForTaskIdentifier = [[NSMutableDictionary alloc] init];

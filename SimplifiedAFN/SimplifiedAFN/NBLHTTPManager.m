@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 #import "NBLHTTPManager.h"
-#import <UIKit/UIKit.h>
 
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
@@ -392,8 +391,8 @@ static dispatch_group_t urlsession_completion_group() {
     self = [super init];
     if (self) {
         self.operationQueue = [[NSOperationQueue alloc] init];
-        // 系统版本为7.0及以上，则采用NSURLSession来发网络请求
-        if ([[UIDevice currentDevice].systemVersion floatValue] >= 7.0) {
+        // NSURLSession存在，即系统版本为7.0及以上，则采用NSURLSession来发网络请求
+        if (NSClassFromString(@"NSURLSession")) {
             self.operationQueue.maxConcurrentOperationCount = 1;
             self.urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:self.operationQueue];
             self.mdicTaskItemForTaskIdentifier = [[NSMutableDictionary alloc] init];
