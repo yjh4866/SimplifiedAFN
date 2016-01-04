@@ -509,7 +509,9 @@ static dispatch_group_t urlsession_completion_group() {
         // NSURLSession存在，即系统版本为7.0及以上，则采用NSURLSession来下载文件
         if (NSClassFromString(@"NSURLSession")) {
             self.operationQueue.maxConcurrentOperationCount = 1;
-            self.urlSession = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:self.operationQueue];
+            NSURLSessionConfiguration *urlSessionConfig = [NSURLSessionConfiguration defaultSessionConfiguration];
+            urlSessionConfig.requestCachePolicy = NSURLRequestReloadIgnoringCacheData;
+            self.urlSession = [NSURLSession sessionWithConfiguration:urlSessionConfig delegate:self delegateQueue:self.operationQueue];
             self.mdicTaskItemForTaskIdentifier = [[NSMutableDictionary alloc] init];
             self.lock = [[NSLock alloc] init];
             self.lock.name = @"com.yjh4866.NBLHTTPFileManager.lock";

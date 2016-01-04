@@ -41,7 +41,7 @@ typedef void (^NBLHTTPProgress)(NSData *webData, int64_t bytesReceived,
  *  @param dicParam     回传对象
  */
 typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, NSData *webData,
-                                  NSError *error, NSDictionary *dicParam);
+                              NSError *error, NSDictionary *dicParam);
 
 
 /* 保留[[NBLHTTPManager alloc] init]的实例化方案。
