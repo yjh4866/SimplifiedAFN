@@ -575,6 +575,11 @@ static dispatch_group_t urlsession_completion_group() {
 - (BOOL)downloadFile:(NSString *)filePath from:(NSString *)url withParam:(NSDictionary *)dicParam
             progress:(NBLHTTPFileProgress)progress andResult:(NBLHTTPFileResult)result
 {
+    // 先判断url是否有效
+    NSURL *URLFile = [NSURL URLWithString:url];
+    if (nil == URLFile) {
+        return NO;
+    }
     // 任务已经存在则直接返回
     if ([self downloadTaskIsExist:url]) {
         return NO;
@@ -598,7 +603,7 @@ static dispatch_group_t urlsession_completion_group() {
             }
             // 临时文件不存在，或者创建失败则重新创建一个任务
             if (nil == urlSessionTask) {
-                urlSessionTask = [self.urlSession downloadTaskWithURL:[NSURL URLWithString:url]];
+                urlSessionTask = [self.urlSession downloadTaskWithURL:URLFile];
             }
         });
         // 配备任务项以保存相关数据

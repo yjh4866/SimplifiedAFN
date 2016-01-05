@@ -507,8 +507,13 @@ static dispatch_group_t urlsession_completion_group() {
 - (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
                      progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
 {
-    // 实例化NSMutableURLRequest
-    NSURLRequest *urlRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:url]];
+    // 先判断url是否有效
+    NSURL *URL = [NSURL URLWithString:url];
+    if (nil == URL) {
+        return NO;
+    }
+    // 实例化NSURLRequest
+    NSURLRequest *urlRequest = [NSURLRequest requestWithURL:URL];
     // 开始请求数据
     return [self requestWebDataWithRequest:urlRequest param:dicParam
                                   progress:progress andResult:result];
@@ -529,7 +534,12 @@ static dispatch_group_t urlsession_completion_group() {
                          progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result onCompletionQueue:(dispatch_queue_t)completionQueue
 {
     // 任务已经存在则直接返回
-    if ([self requestIsExist:dicParam] && [self urlIsRequesting:request.URL.absoluteString]) {
+    // dicParam存在则以此为判断依据
+    if (nil != dicParam && [self requestIsExist:dicParam]) {
+        return NO;
+    }
+    // dicParam不存在则以url为判断依据
+    if (nil == dicParam && [self urlIsRequesting:request.URL.absoluteString]) {
         return NO;
     }
     
