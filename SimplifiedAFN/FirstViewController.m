@@ -21,10 +21,10 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     __weak typeof (self) weakSelf = self;
-    [[NBLHTTPManager sharedManager] requestWebDataFromURL:@"http://www.baidu.com" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+    [[NBLHTTPManager sharedManager] requestObject:NBLResponseObjectType_String fromURL:@"http://www.baidu.com" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, id responseObject, NSError *error, NSDictionary *dicParam) {
         if (nil == error) {
             NSLog(@"正常收到服务器返回的数据了");
-            weakSelf.labelDetail.text = [[NSString alloc] initWithData:webData encoding:NSUTF8StringEncoding];
+            weakSelf.labelDetail.text = responseObject;
         }
     }];
 }

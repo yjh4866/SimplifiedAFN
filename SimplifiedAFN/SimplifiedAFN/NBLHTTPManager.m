@@ -95,6 +95,7 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
 #pragma mark - URLConnectionOperation
 
 @interface URLConnectionOperation : NSOperation <NSURLConnectionDataDelegate>
+@property (nonatomic, assign) NBLResponseObjectType responseObjectType;
 @property (readwrite, nonatomic, strong) NSRecursiveLock *lock;
 @property (readwrite, nonatomic, strong) NSURLConnection *urlConnection;
 @property (nonatomic, strong) NSURLRequest *request;
@@ -249,7 +250,31 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
         dispatch_async(http_request_operation_processing_queue(), ^{
             if (result) {
                 dispatch_group_async(http_request_operation_completion_group(), self.completionQueue?:dispatch_get_main_queue(), ^{
-                    result(self.httpResponse, self.mdataCache, self.error, self.param);
+                    if (NBLResponseObjectType_String == self.responseObjectType) {
+                        NSString *strWebData = [[NSString alloc] initWithData:self.mdataCache encoding:NSUTF8StringEncoding];
+                        if (strWebData) {
+                            result(self.httpResponse, strWebData, self.error, self.param);
+                        }
+                        else {
+                            NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                                                           userInfo:@{@"data": self.mdataCache}];
+                            result(self.httpResponse, self.mdataCache, err, self.param);
+                        }
+                    }
+                    else if (NBLResponseObjectType_JSON == self.responseObjectType) {
+                        id responseObject = [NSJSONSerialization JSONObjectWithData:self.mdataCache options:NSJSONReadingAllowFragments error:nil];
+                        if (responseObject) {
+                            result(self.httpResponse, responseObject, self.error, self.param);
+                        }
+                        else {
+                            NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                                                           userInfo:@{@"data": self.mdataCache}];
+                            result(self.httpResponse, self.mdataCache, err, self.param);
+                        }
+                    }
+                    else {
+                        result(self.httpResponse, self.mdataCache, self.error, self.param);
+                    }
                 });
             }
         });
@@ -338,6 +363,7 @@ static dispatch_group_t urlsession_completion_group() {
 #pragma mark URLSessionTaskItem
 
 @interface URLSessionTaskItem : NSObject
+@property (nonatomic, assign) NBLResponseObjectType responseObjectType;
 @property (nonatomic, strong) NSURLSessionDataTask *urlSessionTask;
 @property (readwrite, nonatomic, strong) NSURLRequest *request;
 @property (nonatomic, strong) NSHTTPURLResponse *httpResponse;
@@ -486,26 +512,28 @@ static dispatch_group_t urlsession_completion_group() {
 
 // 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
-                    andResult:(NBLHTTPResult)result
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
+            withParam:(NSDictionary *)dicParam andResult:(NBLHTTPResult)result
 {
-    return [self requestWebDataFromURL:url withParam:dicParam
-                              progress:nil andResult:result];
+    return [self requestObject:resObjType fromURL:url withParam:dicParam
+                      progress:nil andResult:result];
 }
 
 // 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                        andResult:(NBLHTTPResult)result
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType
+          withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+            andResult:(NBLHTTPResult)result
 {
-    return [self requestWebDataWithRequest:request param:dicParam
-                                  progress:nil andResult:result];
+    return [self requestObject:resObjType withRequest:request param:dicParam
+                      progress:nil andResult:result];
 }
 
 // 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
-                     progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
+            withParam:(NSDictionary *)dicParam
+             progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
 {
     // 先判断url是否有效
     NSURL *URL = [NSURL URLWithString:url];
@@ -515,23 +543,26 @@ static dispatch_group_t urlsession_completion_group() {
     // 实例化NSURLRequest
     NSURLRequest *urlRequest = [NSURLRequest requestWithURL:URL];
     // 开始请求数据
-    return [self requestWebDataWithRequest:urlRequest param:dicParam
-                                  progress:progress andResult:result];
+    return [self requestObject:resObjType withRequest:urlRequest param:dicParam
+                      progress:progress andResult:result];
 }
 
 // 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType
+          withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+             progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
 {
-    return [self requestWebDataWithRequest:request param:dicParam progress:progress
-                                 andResult:result onCompletionQueue:nil];
+    return [self requestObject:resObjType withRequest:request param:dicParam
+                      progress:progress andResult:result onCompletionQueue:nil];
 }
 
 // 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result onCompletionQueue:(dispatch_queue_t)completionQueue
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType
+          withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+             progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
+    onCompletionQueue:(dispatch_queue_t)completionQueue
 {
     // 任务已经存在则直接返回
     // dicParam存在则以此为判断依据
@@ -551,6 +582,7 @@ static dispatch_group_t urlsession_completion_group() {
         });
         // 配备任务项以保存相关数据
         URLSessionTaskItem *taskItem = [[URLSessionTaskItem alloc] init];
+        taskItem.responseObjectType = resObjType;
         taskItem.urlSessionTask = urlSessionTask;
         taskItem.progress = progress;
         taskItem.result = result;
@@ -567,6 +599,7 @@ static dispatch_group_t urlsession_completion_group() {
     else {
         // 创建Operation
         URLConnectionOperation *operation = [[URLConnectionOperation alloc] initWithURLRequest:request];
+        operation.responseObjectType = resObjType;
         operation.progress = progress;
         operation.param = dicParam;
         operation.completionQueue = completionQueue;
@@ -647,7 +680,31 @@ didCompleteWithError:(NSError *)error
         // 通知网络请求结果
         dispatch_group_async(urlsession_completion_group(), taskItem.completionQueue?:dispatch_get_main_queue(), ^{
             if (taskItem.result) {
-                taskItem.result(taskItem.httpResponse, taskItem.mdataCache, error, taskItem.param);
+                if (NBLResponseObjectType_String == taskItem.responseObjectType) {
+                    NSString *strWebData = [[NSString alloc] initWithData:taskItem.mdataCache encoding:NSUTF8StringEncoding];
+                    if (strWebData) {
+                        taskItem.result(taskItem.httpResponse, strWebData, error, taskItem.param);
+                    }
+                    else {
+                        NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                                                       userInfo:@{@"data": taskItem.mdataCache}];
+                        taskItem.result(taskItem.httpResponse, taskItem.mdataCache, err, taskItem.param);
+                    }
+                }
+                else if (NBLResponseObjectType_JSON == taskItem.responseObjectType) {
+                    id responseObject = [NSJSONSerialization JSONObjectWithData:taskItem.mdataCache options:NSJSONReadingAllowFragments error:nil];
+                    if (responseObject) {
+                        taskItem.result(taskItem.httpResponse, responseObject, error, taskItem.param);
+                    }
+                    else {
+                        NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                                                       userInfo:@{@"data": taskItem.mdataCache}];
+                        taskItem.result(taskItem.httpResponse, taskItem.mdataCache, err, taskItem.param);
+                    }
+                }
+                else {
+                    taskItem.result(taskItem.httpResponse, taskItem.mdataCache, error, taskItem.param);
+                }
             }
         });
     }

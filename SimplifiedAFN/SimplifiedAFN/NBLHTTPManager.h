@@ -23,6 +23,24 @@
 #import <Foundation/Foundation.h>
 
 /**
+ *  HTTP请求的响应类型
+ */
+typedef NS_ENUM(unsigned int, NBLResponseObjectType){
+    /**
+     *  NSData
+     */
+    NBLResponseObjectType_Data = 0,
+    /**
+     *  NSString
+     */
+    NBLResponseObjectType_String,
+    /**
+     *  JSON对象
+     */
+    NBLResponseObjectType_JSON
+};
+
+/**
  *  HTTP请求进度
  *
  *  @param webData       webData为nil表示收到响应
@@ -35,12 +53,12 @@ typedef void (^NBLHTTPProgress)(NSData *webData, int64_t bytesReceived,
 /**
  *  HTTP请求结果
  *
- *  @param httpResponse HTTP响应对象NSHTTPURLResponse
- *  @param webData      请求到数据
- *  @param error        发生的错误。nil表示成功
- *  @param dicParam     回传对象
+ *  @param httpResponse   HTTP响应对象NSHTTPURLResponse
+ *  @param responseObject 请求到的对象，
+ *  @param error          发生的错误。nil表示成功
+ *  @param dicParam       回传对象
  */
-typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, NSData *webData,
+typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, id responseObject,
                               NSError *error, NSDictionary *dicParam);
 
 
@@ -60,23 +78,26 @@ typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, NSData *webData,
 
 // 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
-                    andResult:(NBLHTTPResult)result;
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
+            withParam:(NSDictionary *)dicParam andResult:(NBLHTTPResult)result;
 
 // 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                        andResult:(NBLHTTPResult)result;
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType
+          withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+            andResult:(NBLHTTPResult)result;
 
 // 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataFromURL:(NSString *)url withParam:(NSDictionary *)dicParam
-                     progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
+            withParam:(NSDictionary *)dicParam
+             progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
 
 // 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType
+          withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+             progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
 
 // 取消网络请求
 - (void)cancelRequestWithParam:(NSDictionary *)dicParam;

@@ -111,10 +111,12 @@ static dispatch_queue_t httpfile_operation_completion_queue() {
 #pragma mark -  NBLHTTPManager (NBLHTTPFileManager)
 
 @interface  NBLHTTPManager (Private)
-// 根据NSURLRequest获取Web数据
+// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
 // dicParam 可用于回传数据，需要取消时不可为nil
-- (BOOL)requestWebDataWithRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
-                         progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result onCompletionQueue:(dispatch_queue_t)completionQueue;
+- (BOOL)requestObject:(NBLResponseObjectType)resObjType
+          withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+             progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result
+    onCompletionQueue:(dispatch_queue_t)completionQueue;
 @end
 @implementation NBLHTTPManager (NBLHTTPFileManager)
 // NBLHTTPFileManager的专用单例
@@ -267,7 +269,7 @@ typedef void (^Block_Void)();
         self.totalBytes = fileSize;
         // 再获取任务信息数据
         [fileHandle seekToFileOffset:fileSize];
-        NSData *dataTaskInfo = [fileHandle readDataOfLength:tempFileSize-fileSize-8];
+        NSData *dataTaskInfo = [fileHandle readDataOfLength:(NSUInteger)(tempFileSize-fileSize-8)];
         [fileHandle closeFile];
         // 解析成字典，即为子任务字典
         self.mdicSubTaskInfo = [NSJSONSerialization JSONObjectWithData:dataTaskInfo options:NSJSONReadingMutableContainers error:nil];
@@ -304,7 +306,7 @@ typedef void (^Block_Void)();
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 获取文件大小
-        [[NBLHTTPManager sharedManager] requestWebDataWithRequest:mURLRequest param:@{@"Type": @"HEAD", @"url": self.url} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"Type": @"HEAD", @"url": self.url} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
             self.httpResponse = httpResponse;
             // 存在错误，或数据长度过短，则结束
             if (error || httpResponse.expectedContentLength < 1) {
@@ -376,7 +378,7 @@ typedef void (^Block_Void)();
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 下载文件段
-        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestWebDataWithRequest:mURLRequest param:@{@"url": self.url, @"Start": strKey, @"Len": mdicSubTask[@"Len"]} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"url": self.url, @"Start": strKey, @"Len": mdicSubTask[@"Len"]} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
             [self.lock lock];
             // 下载成功
             if (nil == error) {
