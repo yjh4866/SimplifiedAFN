@@ -250,30 +250,47 @@ static inline NSString * KeyPathFromHTTPTaskStatus(URLConnectionStatus state) {
         dispatch_async(http_request_operation_processing_queue(), ^{
             if (result) {
                 dispatch_group_async(http_request_operation_completion_group(), self.completionQueue?:dispatch_get_main_queue(), ^{
-                    if (NBLResponseObjectType_String == self.responseObjectType) {
-                        NSString *strWebData = [[NSString alloc] initWithData:self.mdataCache encoding:NSUTF8StringEncoding];
+                    if (nil != self.error) {
+                        // 将已有数据保存到Error的userInfo中
+                        NSMutableDictionary *mdicUserInfo = [NSMutableDictionary dictionary];
+                        if (self.error.userInfo) {
+                            [mdicUserInfo setDictionary:self.error.userInfo];
+                        }
+                        [mdicUserInfo setObject:self.mdataCache forKey:@"data"];
+                        // 失败
+                        NSError *err = [NSError errorWithDomain:self.error.domain code:self.error.code
+                                                       userInfo:mdicUserInfo];
+                        result(self.httpResponse, nil, err, self.param);
+                    }
+                    else if (NBLResponseObjectType_String == self.responseObjectType) {
+                        NSString *strWebData = [[NSString alloc] initWithData:self.mdataCache
+                                                                     encoding:NSUTF8StringEncoding];
                         if (strWebData) {
-                            result(self.httpResponse, strWebData, self.error, self.param);
+                            result(self.httpResponse, strWebData, nil, self.param);
                         }
                         else {
-                            NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                            // 解析失败
+                            NSError *err = [NSError errorWithDomain:@"NBLErrorDomain"
+                                                               code:NSURLErrorCannotDecodeContentData
                                                            userInfo:@{@"data": self.mdataCache}];
-                            result(self.httpResponse, self.mdataCache, err, self.param);
+                            result(self.httpResponse, nil, err, self.param);
                         }
                     }
                     else if (NBLResponseObjectType_JSON == self.responseObjectType) {
                         id responseObject = [NSJSONSerialization JSONObjectWithData:self.mdataCache options:NSJSONReadingAllowFragments error:nil];
                         if (responseObject) {
-                            result(self.httpResponse, responseObject, self.error, self.param);
+                            result(self.httpResponse, responseObject, nil, self.param);
                         }
                         else {
-                            NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                            // 解析失败
+                            NSError *err = [NSError errorWithDomain:@"NBLErrorDomain"
+                                                               code:NSURLErrorCannotDecodeContentData
                                                            userInfo:@{@"data": self.mdataCache}];
-                            result(self.httpResponse, self.mdataCache, err, self.param);
+                            result(self.httpResponse, nil, err, self.param);
                         }
                     }
                     else {
-                        result(self.httpResponse, self.mdataCache, self.error, self.param);
+                        result(self.httpResponse, self.mdataCache, nil, self.param);
                     }
                 });
             }
@@ -680,30 +697,46 @@ didCompleteWithError:(NSError *)error
         // 通知网络请求结果
         dispatch_group_async(urlsession_completion_group(), taskItem.completionQueue?:dispatch_get_main_queue(), ^{
             if (taskItem.result) {
-                if (NBLResponseObjectType_String == taskItem.responseObjectType) {
-                    NSString *strWebData = [[NSString alloc] initWithData:taskItem.mdataCache encoding:NSUTF8StringEncoding];
+                if (nil != error) {
+                    // 将已有数据保存到Error的userInfo中
+                    NSMutableDictionary *mdicUserInfo = [NSMutableDictionary dictionary];
+                    if (error.userInfo) {
+                        [mdicUserInfo setDictionary:error.userInfo];
+                    }
+                    [mdicUserInfo setObject:taskItem.mdataCache forKey:@"data"];
+                    // 失败
+                    NSError *err = [NSError errorWithDomain:error.domain code:error.code userInfo:mdicUserInfo];
+                    taskItem.result(taskItem.httpResponse, nil, err, taskItem.param);
+                }
+                else if (NBLResponseObjectType_String == taskItem.responseObjectType) {
+                    NSString *strWebData = [[NSString alloc] initWithData:taskItem.mdataCache
+                                                                 encoding:NSUTF8StringEncoding];
                     if (strWebData) {
-                        taskItem.result(taskItem.httpResponse, strWebData, error, taskItem.param);
+                        taskItem.result(taskItem.httpResponse, strWebData, nil, taskItem.param);
                     }
                     else {
-                        NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                        // 解析失败
+                        NSError *err = [NSError errorWithDomain:@"NBLErrorDomain"
+                                                           code:NSURLErrorCannotDecodeContentData
                                                        userInfo:@{@"data": taskItem.mdataCache}];
-                        taskItem.result(taskItem.httpResponse, taskItem.mdataCache, err, taskItem.param);
+                        taskItem.result(taskItem.httpResponse, nil, err, taskItem.param);
                     }
                 }
                 else if (NBLResponseObjectType_JSON == taskItem.responseObjectType) {
                     id responseObject = [NSJSONSerialization JSONObjectWithData:taskItem.mdataCache options:NSJSONReadingAllowFragments error:nil];
                     if (responseObject) {
-                        taskItem.result(taskItem.httpResponse, responseObject, error, taskItem.param);
+                        taskItem.result(taskItem.httpResponse, responseObject, nil, taskItem.param);
                     }
                     else {
-                        NSError *err = [NSError errorWithDomain:@"NBLErrorDomain" code:NSURLErrorCannotDecodeContentData
+                        // 解析失败
+                        NSError *err = [NSError errorWithDomain:@"NBLErrorDomain"
+                                                           code:NSURLErrorCannotDecodeContentData
                                                        userInfo:@{@"data": taskItem.mdataCache}];
-                        taskItem.result(taskItem.httpResponse, taskItem.mdataCache, err, taskItem.param);
+                        taskItem.result(taskItem.httpResponse, nil, err, taskItem.param);
                     }
                 }
                 else {
-                    taskItem.result(taskItem.httpResponse, taskItem.mdataCache, error, taskItem.param);
+                    taskItem.result(taskItem.httpResponse, taskItem.mdataCache, nil, taskItem.param);
                 }
             }
         });

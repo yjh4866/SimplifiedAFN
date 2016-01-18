@@ -306,7 +306,7 @@ typedef void (^Block_Void)();
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 获取文件大小
-        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"Type": @"HEAD", @"url": self.url} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"Type": @"HEAD", @"url": self.url} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, id responseObject, NSError *error, NSDictionary *dicParam) {
             self.httpResponse = httpResponse;
             // 存在错误，或数据长度过短，则结束
             if (error || httpResponse.expectedContentLength < 1) {
@@ -378,7 +378,7 @@ typedef void (^Block_Void)();
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 下载文件段
-        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"url": self.url, @"Start": strKey, @"Len": mdicSubTask[@"Len"]} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, NSData *webData, NSError *error, NSDictionary *dicParam) {
+        [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"url": self.url, @"Start": strKey, @"Len": mdicSubTask[@"Len"]} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, id responseObject, NSError *error, NSDictionary *dicParam) {
             [self.lock lock];
             // 下载成功
             if (nil == error) {
@@ -386,7 +386,7 @@ typedef void (^Block_Void)();
                 NSString *filePathTemp = FilePath_Temp(self.filePath);
                 NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:filePathTemp];
                 [fileHandle seekToFileOffset:[strKey intValue]];
-                [fileHandle writeData:webData];
+                [fileHandle writeData:responseObject];
                 // 删除该子任务
                 [self.mdicSubTaskInfo removeObjectForKey:dicParam[@"Start"]];
                 // 还存在未完成的子任务，更新任务进度
