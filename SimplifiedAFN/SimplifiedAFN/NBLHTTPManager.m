@@ -510,7 +510,7 @@ static dispatch_group_t urlsession_completion_group() {
     return NO;
 }
 
-// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据url获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
             withParam:(NSDictionary *)dicParam andResult:(NBLHTTPResult)result
@@ -519,7 +519,7 @@ static dispatch_group_t urlsession_completion_group() {
                       progress:nil andResult:result];
 }
 
-// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据NSURLRequest获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType
           withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
@@ -529,7 +529,7 @@ static dispatch_group_t urlsession_completion_group() {
                       progress:nil andResult:result];
 }
 
-// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据url获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
             withParam:(NSDictionary *)dicParam
@@ -547,7 +547,7 @@ static dispatch_group_t urlsession_completion_group() {
                       progress:progress andResult:result];
 }
 
-// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据NSURLRequest获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType
           withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
@@ -557,7 +557,7 @@ static dispatch_group_t urlsession_completion_group() {
                       progress:progress andResult:result onCompletionQueue:nil];
 }
 
-// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据NSURLRequest获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType
           withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam

@@ -76,24 +76,24 @@ typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, id responseObject
 // 指定url的网络请求是否存在
 - (BOOL)urlIsRequesting:(NSString *)url;
 
-// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据url获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
             withParam:(NSDictionary *)dicParam andResult:(NBLHTTPResult)result;
 
-// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据NSURLRequest获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType
           withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
             andResult:(NBLHTTPResult)result;
 
-// 根据url获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据url获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
             withParam:(NSDictionary *)dicParam
              progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
 
-// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据NSURLRequest获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType
           withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam

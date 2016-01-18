@@ -111,7 +111,7 @@ static dispatch_queue_t httpfile_operation_completion_queue() {
 #pragma mark -  NBLHTTPManager (NBLHTTPFileManager)
 
 @interface  NBLHTTPManager (Private)
-// 根据NSURLRequest获取Web数据（url和dicParam同时比对成功，才表示任务重复）
+// 根据NSURLRequest获取Web数据（dicParam不为空则以此为去重依据，否则以url为去重依据）
 // dicParam 可用于回传数据，需要取消时不可为nil
 - (BOOL)requestObject:(NBLResponseObjectType)resObjType
           withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
