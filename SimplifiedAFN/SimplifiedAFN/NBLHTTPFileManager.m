@@ -306,46 +306,47 @@ typedef void (^Block_Void)();
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 获取文件大小
+        __weak typeof(self) weakSelf = self;
         [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"Type": @"HEAD", @"url": self.url} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, id responseObject, NSError *error, NSDictionary *dicParam) {
-            self.httpResponse = httpResponse;
+            weakSelf.httpResponse = httpResponse;
             // 存在错误，或数据长度过短，则结束
             if (error || httpResponse.expectedContentLength < 1) {
                 // 文件下载任务结束
-                self.taskStatus = NBLHTTPFileTaskStatus_Finished;
+                weakSelf.taskStatus = NBLHTTPFileTaskStatus_Finished;
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    if (self.result) {
-                        self.result(self.filePath, self.httpResponse, error, self.param);
+                    if (weakSelf.result) {
+                        weakSelf.result(weakSelf.filePath, weakSelf.httpResponse, error, weakSelf.param);
                     }
                 });
             }
             else {
-                self.totalBytes = httpResponse.expectedContentLength;
+                weakSelf.totalBytes = httpResponse.expectedContentLength;
                 // 通过下载进度提示总大小
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    if (self.progress) {
-                        self.progress(0, self.totalBytes, self.param);
+                    if (weakSelf.progress) {
+                        weakSelf.progress(0, weakSelf.totalBytes, weakSelf.param);
                     }
                 });
                 // 生成子任务列表
-                int64_t fileSize = self.httpResponse.expectedContentLength;
+                int64_t fileSize = weakSelf.httpResponse.expectedContentLength;
                 const int sizePartFile = 256*1024;
-                self.mdicSubTaskInfo = [NSMutableDictionary dictionary];
+                weakSelf.mdicSubTaskInfo = [NSMutableDictionary dictionary];
                 unsigned int subTaskCount = ceilf(1.0f*fileSize/sizePartFile); // 每一个任务项大小
                 unsigned int subTaskLen = ceilf(1.0f*fileSize/subTaskCount);
                 for (int i = 0; i < subTaskCount-1; i++) {
-                    [self.mdicSubTaskInfo setObject:[NSMutableDictionary dictionaryWithDictionary:@{@"Len": @(subTaskLen)}] forKey:[NSString stringWithFormat:@"%@", @(i*subTaskLen)]];
+                    [weakSelf.mdicSubTaskInfo setObject:[NSMutableDictionary dictionaryWithDictionary:@{@"Len": @(subTaskLen)}] forKey:[NSString stringWithFormat:@"%@", @(i*subTaskLen)]];
                 }
                 unsigned int startLast = (subTaskCount-1)*subTaskLen;
-                [self.mdicSubTaskInfo setValue:[NSMutableDictionary dictionaryWithDictionary:@{@"Len": @(fileSize-startLast)}] forKey:[NSString stringWithFormat:@"%@", @(startLast)]];
+                [weakSelf.mdicSubTaskInfo setValue:[NSMutableDictionary dictionaryWithDictionary:@{@"Len": @(fileSize-startLast)}] forKey:[NSString stringWithFormat:@"%@", @(startLast)]];
                 
                 // 生成临时文件
-                NSString *filePathTemp = FilePath_Temp(self.filePath);
+                NSString *filePathTemp = FilePath_Temp(weakSelf.filePath);
                 [[NSFileManager defaultManager] createFileAtPath:filePathTemp contents:nil attributes:nil];
                 // 保存临时文件数据
                 NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:filePathTemp];
                 // 跳过实际文件数据区，保存任务信息
                 [fileHandle seekToFileOffset:fileSize];
-                NSData *dataTaskInfo = [NSJSONSerialization dataWithJSONObject:self.mdicSubTaskInfo options:NSJSONWritingPrettyPrinted error:nil];
+                NSData *dataTaskInfo = [NSJSONSerialization dataWithJSONObject:weakSelf.mdicSubTaskInfo options:NSJSONWritingPrettyPrinted error:nil];
                 [fileHandle writeData:dataTaskInfo];
                 // 保存文件大小
                 [fileHandle seekToFileOffset:fileSize+dataTaskInfo.length];
@@ -355,7 +356,7 @@ typedef void (^Block_Void)();
                 [fileHandle closeFile];
                 
                 // 执行子任务
-                self.executeSubTask();
+                weakSelf.executeSubTask();
             }
         } onCompletionQueue:httpfile_operation_headcompletion_queue()];
     }
@@ -378,68 +379,69 @@ typedef void (^Block_Void)();
         [mURLRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
         [mURLRequest setValue:@"" forHTTPHeaderField:@"Accept-Encoding"];
         // 下载文件段
+        __weak typeof(self) weakSelf = self;
         [[NBLHTTPManager sharedManagerForHTTPFileManger] requestObject:NBLResponseObjectType_Data withRequest:mURLRequest param:@{@"url": self.url, @"Start": strKey, @"Len": mdicSubTask[@"Len"]} progress:nil andResult:^(NSHTTPURLResponse *httpResponse, id responseObject, NSError *error, NSDictionary *dicParam) {
-            [self.lock lock];
+            [weakSelf.lock lock];
             // 下载成功
             if (nil == error) {
                 // 将下载到的数据保存到临时文件
-                NSString *filePathTemp = FilePath_Temp(self.filePath);
+                NSString *filePathTemp = FilePath_Temp(weakSelf.filePath);
                 NSFileHandle *fileHandle = [NSFileHandle fileHandleForWritingAtPath:filePathTemp];
                 [fileHandle seekToFileOffset:[strKey intValue]];
                 [fileHandle writeData:responseObject];
                 // 删除该子任务
-                [self.mdicSubTaskInfo removeObjectForKey:dicParam[@"Start"]];
+                [weakSelf.mdicSubTaskInfo removeObjectForKey:dicParam[@"Start"]];
                 // 还存在未完成的子任务，更新任务进度
-                if (self.mdicSubTaskInfo.count > 0) {
-                    self.bytesReceived += [dicParam[@"Len"] intValue];
+                if (weakSelf.mdicSubTaskInfo.count > 0) {
+                    weakSelf.bytesReceived += [dicParam[@"Len"] intValue];
                     // 将任务进度更新到文件
-                    [fileHandle seekToFileOffset:self.totalBytes];
-                    NSData *dataTaskInfo = [NSJSONSerialization dataWithJSONObject:self.mdicSubTaskInfo options:NSJSONWritingPrettyPrinted error:nil];
+                    [fileHandle seekToFileOffset:weakSelf.totalBytes];
+                    NSData *dataTaskInfo = [NSJSONSerialization dataWithJSONObject:weakSelf.mdicSubTaskInfo options:NSJSONWritingPrettyPrinted error:nil];
                     [fileHandle writeData:dataTaskInfo];
                     // 保存文件大小
-                    [fileHandle seekToFileOffset:self.totalBytes+dataTaskInfo.length];
-                    int64_t fileSize = self.totalBytes;
+                    [fileHandle seekToFileOffset:weakSelf.totalBytes+dataTaskInfo.length];
+                    int64_t fileSize = weakSelf.totalBytes;
                     [fileHandle writeData:[NSData dataWithBytes:&fileSize length:8]];
                     // 掐掉可能多余的数据
                     [fileHandle truncateFileAtOffset:fileSize+dataTaskInfo.length+8];
                     [fileHandle closeFile];
                     // 文件下载进度变更
-                    int64_t bytesReceived = self.bytesReceived;
+                    int64_t bytesReceived = weakSelf.bytesReceived;
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        if (self.progress) {
-                            self.progress(bytesReceived, self.totalBytes, self.param);
+                        if (weakSelf.progress) {
+                            weakSelf.progress(bytesReceived, weakSelf.totalBytes, weakSelf.param);
                         }
                     });
                     // 错误的子任务数量，与剩余子任务数量相同，则所有子任务均已完成，再次执行子任务
-                    if (self.mdicSubTaskInfo.count == self.errCountOfSubTask) {
-                        self.executeSubTask();
+                    if (weakSelf.mdicSubTaskInfo.count == weakSelf.errCountOfSubTask) {
+                        weakSelf.executeSubTask();
                     }
                 }
                 else {
                     // 掐掉下载进度相关数据
-                    [fileHandle truncateFileAtOffset:self.totalBytes];
+                    [fileHandle truncateFileAtOffset:weakSelf.totalBytes];
                     [fileHandle closeFile];
                     // 将临时文件修改为正式文件
-                    [[NSFileManager defaultManager] removeItemAtPath:self.filePath error:nil];
-                    [[NSFileManager defaultManager] moveItemAtPath:filePathTemp toPath:self.filePath error:nil];
+                    [[NSFileManager defaultManager] removeItemAtPath:weakSelf.filePath error:nil];
+                    [[NSFileManager defaultManager] moveItemAtPath:filePathTemp toPath:weakSelf.filePath error:nil];
                     // 文件下载任务结束
-                    self.taskStatus = NBLHTTPFileTaskStatus_Finished;
+                    weakSelf.taskStatus = NBLHTTPFileTaskStatus_Finished;
                     dispatch_async(dispatch_get_main_queue(), ^{
-                        if (self.result) {
-                            self.result(self.filePath, self.httpResponse, nil, self.param);
+                        if (weakSelf.result) {
+                            weakSelf.result(weakSelf.filePath, weakSelf.httpResponse, nil, weakSelf.param);
                         }
                     });
                 }
             }
             // 下载失败
             else {
-                self.errCountOfSubTask += 1;
+                weakSelf.errCountOfSubTask += 1;
                 // 错误的子任务数量，与剩余子任务数量相同，则所有子任务均已完成
-                if (self.mdicSubTaskInfo.count == self.errCountOfSubTask) {
-                    self.executeSubTask();
+                if (weakSelf.mdicSubTaskInfo.count == weakSelf.errCountOfSubTask) {
+                    weakSelf.executeSubTask();
                 }
             }
-            [self.lock unlock];
+            [weakSelf.lock unlock];
         } onCompletionQueue:httpfile_operation_completion_queue()];
     }
     [self.lock unlock];
