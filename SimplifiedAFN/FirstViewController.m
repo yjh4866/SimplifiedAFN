@@ -8,9 +8,11 @@
 
 #import "FirstViewController.h"
 #import "NBLHTTPManager.h"
+#import "UIImageView+NBL.h"
 
 @interface FirstViewController ()
 @property (strong, nonatomic) IBOutlet UILabel *labelDetail;
+@property (strong, nonatomic) IBOutlet UIImageView *imageView;
 
 @end
 
@@ -25,6 +27,15 @@
         if (nil == error) {
             NSLog(@"正常收到服务器返回的数据了");
             weakSelf.labelDetail.text = responseObject;
+        }
+    }];
+    
+    [self.imageView loadImageFromCachePath:nil orPicUrl:@"http://www.baidu.com" withDownloadResult:^(UIImageView *imageView, NSString *picUrl, float progress, BOOL finished, NSError *error) {
+        if (finished) {
+            
+        }
+        else {
+            NSLog(@"Progress: %.2f%%", 100*progress);
         }
     }];
 }

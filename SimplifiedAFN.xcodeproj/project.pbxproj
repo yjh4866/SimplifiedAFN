@@ -16,6 +16,7 @@
 		B1B3865A1BF4DA2900234748 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B1B386581BF4DA2900234748 /* LaunchScreen.storyboard */; };
 		B1B386641BF4DA6000234748 /* NBLHTTPManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B1B386631BF4DA6000234748 /* NBLHTTPManager.m */; };
 		B1C78FE91BF71C97005C7D20 /* NBLHTTPFileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B1C78FE81BF71C97005C7D20 /* NBLHTTPFileManager.m */; };
+		FF9493341C5EF71A000308DC /* UIImageView+NBL.m in Sources */ = {isa = PBXBuildFile; fileRef = FF9493331C5EF71A000308DC /* UIImageView+NBL.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,8 @@
 		B1B386631BF4DA6000234748 /* NBLHTTPManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NBLHTTPManager.m; sourceTree = "<group>"; };
 		B1C78FE71BF71C97005C7D20 /* NBLHTTPFileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NBLHTTPFileManager.h; sourceTree = "<group>"; };
 		B1C78FE81BF71C97005C7D20 /* NBLHTTPFileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NBLHTTPFileManager.m; sourceTree = "<group>"; };
+		FF9493321C5EF71A000308DC /* UIImageView+NBL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImageView+NBL.h"; sourceTree = "<group>"; };
+		FF9493331C5EF71A000308DC /* UIImageView+NBL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImageView+NBL.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +71,7 @@
 			isa = PBXGroup;
 			children = (
 				B1B386611BF4DA6000234748 /* SimplifiedAFN */,
+				FF9493311C5EF71A000308DC /* SimplifiedAFN+UIKit */,
 				B1B3864A1BF4DA2900234748 /* AppDelegate.h */,
 				B1B3864B1BF4DA2900234748 /* AppDelegate.m */,
 				B1B3864D1BF4DA2900234748 /* FirstViewController.h */,
@@ -100,6 +104,15 @@
 				B1B386631BF4DA6000234748 /* NBLHTTPManager.m */,
 			);
 			path = SimplifiedAFN;
+			sourceTree = "<group>";
+		};
+		FF9493311C5EF71A000308DC /* SimplifiedAFN+UIKit */ = {
+			isa = PBXGroup;
+			children = (
+				FF9493321C5EF71A000308DC /* UIImageView+NBL.h */,
+				FF9493331C5EF71A000308DC /* UIImageView+NBL.m */,
+			);
+			path = "SimplifiedAFN+UIKit";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -178,6 +191,7 @@
 				B1B3864C1BF4DA2900234748 /* AppDelegate.m in Sources */,
 				B1B3864F1BF4DA2900234748 /* FirstViewController.m in Sources */,
 				B1B386491BF4DA2800234748 /* main.m in Sources */,
+				FF9493341C5EF71A000308DC /* UIImageView+NBL.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

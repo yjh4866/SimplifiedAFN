@@ -755,7 +755,7 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
     // 告知进度更新
     dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
         if (taskItem.progress) {
-            taskItem.progress(downloadTask.countOfBytesReceived, downloadTask.countOfBytesExpectedToReceive, taskItem.param);
+            taskItem.progress(totalBytesWritten, totalBytesExpectedToWrite, taskItem.param);
         }
     });
 }
@@ -771,7 +771,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes
     // 告知进度更新
     dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
         if (taskItem.progress) {
-            taskItem.progress(downloadTask.countOfBytesReceived, downloadTask.countOfBytesExpectedToReceive, taskItem.param);
+            taskItem.progress(fileOffset, expectedTotalBytes, taskItem.param);
         }
     });
 }
