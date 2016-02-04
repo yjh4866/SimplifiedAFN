@@ -7,32 +7,111 @@ SimplifiedAFN是精简化的AFNetworking，同时增加了去重功能，并在�
 
 iOS7以下使用NSURLConnection进行网络连接，iOS7及以上使用NSURLSession。
 
-## HTTPRequestManager
-提供单例方法**sharedManager**，但也保留[[HTTPRequestManager alloc] init]的实例化方法。
+## NBLHTTPManager
+提供单例方法**sharedManager**，但也保留[[NBLHTTPManager alloc] init]的实例化方法。
 
-首先定义了两个block
+- 首先定义了一个枚举类型，以设定返回对象的类型
 
-第一个用于返回HTTP请求结果。error为nil表示请求成功
-~~~
-typedef void (^HTTPRequestResult)(NSHTTPURLResponse *httpResponse, 
-                                  NSData *webData, NSError *error, 
-                                  NSDictionary *dicParam);
-~~~
-第二个用于请求进度回调。webData为nil表示收到响应
-~~~
-typedef void (^HTTPRequestProgress)(NSData *webData, int64_t bytesReceived, 
+    ```
+    typedef NS_ENUM(unsigned int, NBLResponseObjectType){
+        // 普通NSData数据
+        NBLResponseObjectType_Data = 0,
+        // NSString
+        NBLResponseObjectType_String,
+        // JSON对象，一般是NSDictionary或NSArray
+        NBLResponseObjectType_JSON
+    };
+    ```
+
+- 然后定义了两个block：
+
+    第一个用于返回HTTP请求结果。error为nil表示请求成功
+
+    ```
+    typedef void (^NBLHTTPResult)(NSHTTPURLResponse *httpResponse, id responseObject,
+	                              NSError *error, NSDictionary *dicParam);
+    ```
+
+    第二个用于请求进度回调。webData为nil表示收到响应
+
+    ```
+    typedef void (^NBLHTTPProgress)(NSData *webData, int64_t bytesReceived,
                                     int64_t totalBytes, NSDictionary *dicParam);
-~~~
+
+    ```
 
 
-### 获取指定url的网页数据
-这个接口是最常用的接口。dicParam用于result回传参数，可为nil
-~~~
-- (BOOL)requestWebDataFromURL:(NSString *)url 
-                    withParam:(NSDictionary *)dicParam
-                    andResult:(HTTPRequestResult)result;
-~~~
+- 获取指定url的网页数据
 
+    这个接口是最常用的接口，以**GET**方式从指定url获取数据。dicParam用于result回传参数，可为nil
+
+    ```
+    - (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
+                withParam:(NSDictionary *)dicParam andResult:(NBLHTTPResult)result;
+    ```                
+                
+    需要使用GET以外的HTTP命令，如POST等，或者需要设置HTTP的Header，则可以创建NSURLRequest，然后使用下面这个万能接口
+
+    ```
+    - (BOOL)requestObject:(NBLResponseObjectType)resObjType
+              withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+                andResult:(NBLHTTPResult)result;
+    ```                
+
+    与这两个方法对应的，还有相应的带进度block参数的方法。
+    
+    ```
+    - (BOOL)requestObject:(NBLResponseObjectType)resObjType fromURL:(NSString *)url
+                withParam:(NSDictionary *)dicParam
+                 progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
+    ```
+    
+    ```
+    - (BOOL)requestObject:(NBLResponseObjectType)resObjType
+              withRequest:(NSURLRequest *)request param:(NSDictionary *)dicParam
+                 progress:(NBLHTTPProgress)progress andResult:(NBLHTTPResult)result;
+    ```
+
+- 查询网络请求，或取消网络请求
+
+    取消网络请求
+
+    ```
+    - (void)cancelRequestWithParam:(NSDictionary *)dicParam;
+    ```
+
+    查询网络请求
+
+    ```
+    - (BOOL)requestIsExist:(NSDictionary *)dicParam;
+    ```
+    
+    ```
+    - (BOOL)urlIsRequesting:(NSString *)url;
+    ```
+
+
+
+
+## NBLHTTPFileManager
+提供单例方法**sharedManager**，但也保留[[NBLHTTPFileManager alloc] init]的实例化方法。
+
+- 定义了两个block：
+
+    第一个用于返回HTTP文件下载结果。error为nil表示请求成功
+
+    ```
+    typedef void (^NBLHTTPFileResult)(NSString *filePath, NSHTTPURLResponse *httpResponse,
+                                      NSError *error, NSDictionary *dicParam);
+    ```
+
+    第二个用于HTTP文件下载进度回调。
+
+    ```
+    typedef void (^NBLHTTPFileProgress)(int64_t bytesReceived, int64_t totalBytes,
+                                        NSDictionary *dicParam);
+
+    ```
 
 
 
