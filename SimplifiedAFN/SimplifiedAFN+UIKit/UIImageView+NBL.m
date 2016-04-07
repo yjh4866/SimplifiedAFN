@@ -203,6 +203,7 @@
 - (void)loadImageFromCachePath:(NSString *)filePath orPicUrl:(NSString *)picUrl
             withDownloadResult:(UIImageViewDownloadImageResult)downloadResult
 {
+    self.image = nil;
     // 无路径则使用默认路径
     if (filePath.length == 0) {
         NSString *cachePath = CachePath_UIImageView;
