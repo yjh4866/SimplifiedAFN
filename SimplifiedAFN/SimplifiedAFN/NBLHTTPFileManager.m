@@ -32,7 +32,7 @@
 // 将url转换为文件名
 NSString *transferFileNameFromURL(NSString *url)
 {
-    if (url.length > 0) {
+    if ([url isKindOfClass:NSString.class] && url.length > 0) {
         // 将url字符MD5处理
         const char *cStr = [url UTF8String];
         unsigned char result[16];
