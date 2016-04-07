@@ -24,6 +24,41 @@
 #import "NBLHTTPFileManager.h"
 
 
+#pragma mark - UIImageViewObject
+
+@interface UIImageViewTask : NSObject
+@property (nonatomic, weak) UIImageView *imageView;
+@property (nonatomic, strong) NSString *filePath;
+@property (nonatomic, copy) UIImageViewDownloadImageResult downloadResult;
+@end
+@implementation UIImageViewTask
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        [self addObserver:self forKeyPath:@"imageView" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:nil];
+    }
+    return self;
+}
+- (void)dealloc
+{
+    [self removeObserver:self forKeyPath:@"imageView"];
+}
+- (void)observeValueForKeyPath:(nullable NSString *)keyPath ofObject:(nullable id)object change:(nullable NSDictionary<NSString*, id> *)change context:(nullable void *)context
+{
+    if ([keyPath isEqualToString:@"imageView"]) {
+        UIImageView *imageViewNew = change[NSKeyValueChangeNewKey];
+        UIImageView *imageViewOld = change[NSKeyValueChangeOldKey];
+        // weak修饰的imageView释放导致该属性为nil，该KVO未监视到，原因未知
+        // 所以只能通过外部调用cancelDownload的方式取消
+        if (![imageViewNew isKindOfClass:UIImageView.class] &&
+            [imageViewOld isKindOfClass:UIImageView.class]) {
+            [imageViewOld cancelDownload];
+        }
+    }
+}
+@end
+
 #pragma mark - UIImageViewManager
 
 @interface UIImageViewManager : NSObject {
@@ -70,13 +105,11 @@
         mdicURLItem[@"list"] = marrItem;
     }
     // 加入下载任务
-    if (downloadResult) {
-        UIImageViewDownloadImageResult result = [downloadResult copy];
-        [marrItem addObject:@{@"view": imageView, @"path": filePath, @"block": result}];
-    }
-    else {
-        [marrItem addObject:@{@"view": imageView, @"path": filePath}];
-    }
+    UIImageViewTask *downloadTask = [[UIImageViewTask alloc] init];
+    downloadTask.imageView = imageView;
+    downloadTask.filePath = filePath;
+    downloadTask.downloadResult = downloadResult;
+    [marrItem addObject:downloadTask];
     // 第一次请求该url时才会下载
     if (marrItem.count == 1) {
         [[NBLHTTPFileManager sharedManager] downloadFile:filePath from:url withParam:@{@"url": url} progress:^(int64_t bytesReceived, int64_t totalBytes, NSDictionary *dicParam) {
@@ -84,11 +117,10 @@
             NSString *url = dicParam[@"url"];
             NSArray *arrItem = _mdicURLKey[url][@"list"];
             // 遍历该任务项列表
-            for (NSDictionary *dicItem in arrItem) {
+            for (UIImageViewTask *downloadTask in arrItem) {
                 // 开始下载的回调
-                UIImageViewDownloadImageResult downloadResult = dicItem[@"block"];
-                if (downloadResult) {
-                    downloadResult(dicItem[@"view"], url, 1.0f*bytesReceived/totalBytes, NO, nil);
+                if (downloadTask.downloadResult) {
+                    downloadTask.downloadResult(downloadTask.imageView, url, 1.0f*bytesReceived/totalBytes, NO, nil);
                 }
             }
         } andResult:^(NSString *filePath, NSHTTPURLResponse *httpResponse, NSError *error, NSDictionary *dicParam) {
@@ -99,28 +131,26 @@
             UIImage *image = [UIImage imageWithContentsOfFile:filePath];
             if (image) {
                 // 遍历该任务项列表
-                for (NSDictionary *dicItem in arrItem) {
+                for (UIImageViewTask *downloadTask in arrItem) {
                     // 设置图片
-                    UIImageView *imageView = dicItem[@"view"];
-                    imageView.image = image;
+                    downloadTask.imageView.image = image;
                     // 开始下载的回调
-                    UIImageViewDownloadImageResult downloadResult = dicItem[@"block"];
-                    if (downloadResult) {
-                        downloadResult(imageView, url, 1.0f, YES, nil);
+                    if (downloadTask.downloadResult) {
+                        downloadTask.downloadResult(downloadTask.imageView, url, 1.0f, YES, nil);
                     }
                 }
             }
             else {
                 NSError *error = [NSError errorWithDomain:@"NBLError" code:NSURLErrorCannotDecodeContentData userInfo:@{NSLocalizedDescriptionKey: @"图片数据错误"}];
                 // 遍历该任务项列表
-                for (NSDictionary *dicItem in arrItem) {
+                for (UIImageViewTask *downloadTask in arrItem) {
                     // 开始下载的回调
-                    UIImageViewDownloadImageResult downloadResult = dicItem[@"block"];
-                    if (downloadResult) {
-                        downloadResult(dicItem[@"view"], url, 1.0f, YES, error);
+                    if (downloadTask.downloadResult) {
+                        downloadTask.downloadResult(downloadTask.imageView, url, 1.0f, YES, error);
                     }
                 }
             }
+            [_mdicURLKey removeObjectForKey:url];
         }];
     }
 }
@@ -134,9 +164,9 @@
         NSMutableArray *marrItem = mdicURLItem[@"list"];
         // 遍历任务列表
         for (int i = 0; i < marrItem.count; i++) {
-            NSDictionary *dicItem = marrItem[i];
+            UIImageViewTask *downloadTask = marrItem[i];
             // 找到需要取消的UIImageView
-            if (dicItem[@"view"] == imageView) {
+            if (downloadTask.imageView == imageView) {
                 [marrItem removeObjectAtIndex:i];
                 // 只有这一个下载则要取消下载任务
                 if (0 == marrItem.count) {
