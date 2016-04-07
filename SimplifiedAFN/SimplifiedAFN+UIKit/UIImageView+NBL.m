@@ -222,7 +222,7 @@
         self.image = imageCache;
     }
     // 缓存图片没读取到，且url存在，则下载
-    else if (picUrl) {
+    else if ([picUrl isKindOfClass:NSString.class] && picUrl.length > 0) {
         [[UIImageViewManager sharedInstance] downloadFile:filePath from:picUrl showOn:self
                                                withResult:downloadResult];
     }
