@@ -23,14 +23,14 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     __weak typeof (self) weakSelf = self;
-    [[NBLHTTPManager sharedManager] requestObject:NBLResponseObjectType_String fromURL:@"http://www.baidu.com" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, id responseObject, NSError *error, NSDictionary *dicParam) {
+    [[NBLHTTPManager sharedManager] requestObject:NBLResponseObjectType_String fromURL:@"http://appforyou.net/app/com.3dmaze/MoreGame.php" withParam:@{} andResult:^(NSHTTPURLResponse *httpResponse, id responseObject, NSError *error, NSDictionary *dicParam) {
         if (nil == error) {
             NSLog(@"正常收到服务器返回的数据了");
             weakSelf.labelDetail.text = responseObject;
         }
     }];
     
-    [self.imageView loadImageFromCachePath:nil orPicUrl:@"http://www.baidu.com" withDownloadResult:^(UIImageView *imageView, NSString *picUrl, float progress, BOOL finished, NSError *error) {
+    [self.imageView loadImageFromCachePath:nil orPicUrl:@"http://appleyuan.net/app/com.3dmaze/icon150x150.jpg" withDownloadResult:^(UIImageView *imageView, NSString *picUrl, float progress, BOOL finished, NSError *error) {
         if (finished) {
             
         }

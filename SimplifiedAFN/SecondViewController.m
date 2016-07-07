@@ -36,7 +36,7 @@
     
     NSString *urlPic = @"http://www.bjsubway.com/subway/images/subway_map.jpg";
     [self.imageView loadImageFromCachePath:nil orPicUrl:urlPic withDownloadResult:^(UIImageView *imageView, NSString *picUrl, float progress, BOOL finished, NSError *error) {
-        
+        NSLog(@"下载进度：%.2f%%", 100*progress);
     }];
 }
 

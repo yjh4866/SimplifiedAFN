@@ -184,7 +184,7 @@
 
 #pragma mark - UIImageView (NBL)
 
-#define CachePath_UIImageView [NSHomeDirectory() stringByAppendingPathComponent:@"Library/UIImageView"]
+#define CachePath_UIImageView [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES)[0] stringByAppendingPathComponent:@"UIImageView"]
 
 @implementation UIImageView (NBL)
 
