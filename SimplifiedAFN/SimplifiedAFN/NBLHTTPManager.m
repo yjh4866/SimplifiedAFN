@@ -670,7 +670,7 @@ static dispatch_group_t urlsession_completion_group() {
 {
     [self.lock lock];
     // 所有请求均出错
-    for (URLSessionTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+    for (__block URLSessionTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
         dispatch_group_async(urlsession_completion_group(), taskItem.completionQueue?:dispatch_get_main_queue(), ^{
             if (taskItem.result) {
                 taskItem.result(taskItem.httpResponse, taskItem.mdataCache, error, taskItem.param);
@@ -690,7 +690,7 @@ static dispatch_group_t urlsession_completion_group() {
 didCompleteWithError:(NSError *)error
 {
     [self.lock lock];
-    URLSessionTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(task.taskIdentifier)];
+    __block URLSessionTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(task.taskIdentifier)];
     [self.lock unlock];
     // 取消不算失败
     if (NSURLErrorCancelled != error.code) {
@@ -755,7 +755,7 @@ didReceiveResponse:(NSURLResponse *)response
  completionHandler:(void (^)(NSURLSessionResponseDisposition disposition))completionHandler
 {
     [self.lock lock];
-    URLSessionTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(dataTask.taskIdentifier)];
+    __block URLSessionTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(dataTask.taskIdentifier)];
     [self.lock unlock];
     if ([response isKindOfClass:NSHTTPURLResponse.class]) {
         taskItem.httpResponse = (NSHTTPURLResponse *)response;
@@ -776,7 +776,7 @@ didReceiveResponse:(NSURLResponse *)response
     didReceiveData:(NSData *)data
 {
     [self.lock lock];
-    URLSessionTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(dataTask.taskIdentifier)];
+    __block URLSessionTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(dataTask.taskIdentifier)];
     [self.lock unlock];
     // 追加数据
     [taskItem.mdataCache appendData:data];
