@@ -302,13 +302,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Xiaona Wang (6QWY6A3TC7)";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Jianhong Yang (S7T9428JDF)";
 				INFOPLIST_FILE = SimplifiedAFN/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AppForYou.SimplifiedAFN;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "d1d7dea5-fbeb-43db-836c-70e98d6faa83";
+				PROVISIONING_PROFILE = "05126382-87f0-4a91-ae62-ecbffb146be5";
 			};
 			name = Debug;
 		};
@@ -317,13 +317,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_ARC = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Xiaona Wang (6QWY6A3TC7)";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Jianhong Yang (S7T9428JDF)";
 				INFOPLIST_FILE = SimplifiedAFN/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.AppForYou.SimplifiedAFN;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "d1d7dea5-fbeb-43db-836c-70e98d6faa83";
+				PROVISIONING_PROFILE = "05126382-87f0-4a91-ae62-ecbffb146be5";
 			};
 			name = Release;
 		};

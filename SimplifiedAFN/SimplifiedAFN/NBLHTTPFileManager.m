@@ -548,7 +548,7 @@ static dispatch_group_t urlsession_completion_group() {
     if (self.urlSession) {
         [self.lock lock];
         // 先查一下是否已经存在
-        for (URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+        for (__block URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
             // 参数相等，且未取消未完成
             if ([taskItem.url isEqualToString:url] &&
                 NSURLSessionTaskStateCanceling != taskItem.urlSessionTask.state &&
@@ -686,7 +686,7 @@ static dispatch_group_t urlsession_completion_group() {
 {
     [self.lock lock];
     // 所有请求均出错
-    for (URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
+    for (__block URLSessionDownloadTaskItem *taskItem in self.mdicTaskItemForTaskIdentifier.allValues) {
         dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
             if (taskItem.result) {
                 taskItem.result(taskItem.filePath, taskItem.httpResponse, error, taskItem.param);
@@ -706,7 +706,7 @@ static dispatch_group_t urlsession_completion_group() {
 didCompleteWithError:(NSError *)error
 {
     [self.lock lock];
-    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(task.taskIdentifier)];
+    __block URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(task.taskIdentifier)];
     [self.lock unlock];
     // 网络连接意外断开，则需要保存缓存数据以备续传
     if (error.userInfo[NSURLSessionDownloadTaskResumeData]) {
@@ -736,7 +736,7 @@ didCompleteWithError:(NSError *)error
 didFinishDownloadingToURL:(NSURL *)location
 {
     [self.lock lock];
-    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
+    __block URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
     [self.lock unlock];
     // 移到指定的目录
     NSURL *dstURL = [NSURL fileURLWithPath:taskItem.filePath];
@@ -750,7 +750,7 @@ didFinishDownloadingToURL:(NSURL *)location
 totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 {
     [self.lock lock];
-    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
+    __block URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
     [self.lock unlock];
     // 告知进度更新
     dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
@@ -766,7 +766,7 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
 expectedTotalBytes:(int64_t)expectedTotalBytes
 {
     [self.lock lock];
-    URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
+    __block URLSessionDownloadTaskItem *taskItem = self.mdicTaskItemForTaskIdentifier[@(downloadTask.taskIdentifier)];
     [self.lock unlock];
     // 告知进度更新
     dispatch_group_async(urlsession_completion_group(), dispatch_get_main_queue(), ^{
